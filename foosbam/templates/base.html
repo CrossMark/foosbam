@@ -5,7 +5,11 @@
     </head>
     <body>
         <div>
-            <a href="{{ url_for('login')  }}">Sign in</a> 
+            {% if current_user.is_anonymous %}
+                <a href="{{ url_for('login')  }}">Sign in</a>
+            {% else %}
+                <a href="{{ url_for('logout')  }}">Sign out</a>
+            {% endif %}    
             <a href="{{ url_for('index')  }}">Home</a>
         </div>
         <hr>

@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Foosbam</h1>
-    <a href=https://docs.google.com/spreadsheets/d/1LRy2vC8T3n3bLGlvqqN7l-e-jk24V-7ceWOuaDg9vKk><button type="button">Voer nieuw resultaat in</button></a>
-    <button type="button">Bekijk afgelopen resultaten</button>
-    <button type="button">Bekijk ranglijst</button>
+    <h1>Hi {{ current_user.username  }}, welcome to Foosbam!</h1>
+    <a href=https://docs.google.com/spreadsheets/d/1LRy2vC8T3n3bLGlvqqN7l-e-jk24V-7ceWOuaDg9vKk><button type="button">New result</button></a>
+    <button type="button">Previous results</button>
+    <button type="button">Ranking</button>
 {% endblock %}
