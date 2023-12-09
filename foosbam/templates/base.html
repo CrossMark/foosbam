@@ -1,20 +1,74 @@
 <!DOCTYPE html>
 <html>
     <head>
-      <title>Foosbam</title>
-      <link href="https://cdn.jsdelivr.net/npm/bulma/css/bulma.min.css" rel="stylesheet">
+        <title>Foosbam</title>
+        <link href="https://cdn.jsdelivr.net/npm/bulma/css/bulma.min.css" rel="stylesheet">
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+        <script>
+            $(document).ready(function() {
+            // Check for click events on the navbar burger icon
+                $(".navbar-burger").click(function() {
+                    // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
+                    $(".navbar-burger").toggleClass("is-active");
+                    $(".navbar-menu").toggleClass("is-active");
+                });
+            });
+        </script>
+
+        <script>
+            $(document).ready(function() {
+            // Check for click events on delete icon
+                $(".delete").click(function() {
+                    // Toggle the "is-active" class on "notification"
+                    $(".notification").remove();
+                });
+            });
+        </script>
     </head>
     <body>
         <!--Navigation bar-->
-        <div>
-            {% if current_user.is_anonymous %}
-                <a href="{{ url_for('login')  }}">Sign in</a>
-            {% else %}
-                <a href="{{ url_for('logout')  }}">Sign out</a>
-            {% endif %}    
-            <a href="{{ url_for('index')  }}">Home</a>
-        </div>
-        <hr>
+        <nav class="navbar" role="navigation" aria-label="main navigation">
+            <div class="navbar-brand">
+                <a class="navbar-item" href="#">
+                    <h1><b>FOOSBAM</b></h1>
+                </a>
+
+                <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbar_menu">
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                </a>
+            </div>
+
+            <div id="navbar_menu" class="navbar-menu">
+                <div class="navbar-start">
+                    <a class="navbar-item", href="{{ url_for('index')  }}">
+                        Home
+                    </a>
+                </div>
+                <div class="navbar-end">
+                    <div class="navbar-item">
+                        <div class="buttons">
+                            {% if current_user.is_anonymous %}
+                                <a class="button is-primary", href="{{ url_for('register')  }}">
+                                    Register
+                                </a>
+                                <a class="button is-link", href="{{ url_for('login')  }}">
+                                    Sign in
+                                </a>
+                            {% else %}
+                                <a class="button is-danger", href="{{ url_for('logout')  }}">
+                                    Sign out
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
         <!--Alerts and messages-->
         {% with messages = get_flashed_messages() %}
         {% if messages %}
