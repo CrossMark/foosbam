@@ -1,0 +1,96 @@
+{% macro form_field(field)%}
+    {%- if field.name == 'username'%}
+        <div class="field">
+            <label class="label">{{ field.label }}</label>
+            <div class="control has-icons-left">
+                {{  field(class="input", type="text")  }}
+                <span class="icon is-small is-left">
+                    <i class="fas fa-user"></i>
+                </span>
+            </div>
+            {% for error in field.errors %}
+                <p class="help is-danger">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+    {%- elif field.name == 'email'%}
+        <div class="field">
+            <label class="label">{{ field.label }}</label>
+            <div class="control has-icons-left">
+                {{  field(class="input", type="email")  }}
+                <span class="icon is-small is-left">
+                    <i class="fas fa-envelope"></i>
+                </span>
+            </div>
+            {% for error in field.errors %}
+                <p class="help is-danger">{{ error }}</p>
+            {% endfor %}
+        </div>
+    
+    {%- elif field.type == 'PasswordField' %}
+        <div class="field">
+            <label class="label">{{ field.label }}</label>
+            <div class="control has-icons-left">
+                {{  field(class="input", type="password")  }}
+                <span class="icon is-small is-left">
+                    <i class="fas fa-lock"></i>
+                </span>
+            </div>
+            {% for error in field.errors %}
+                <p class="help is-danger">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+    {%- elif field.type == 'BooleanField'%}
+        <div class="field">
+            <div class="control">
+                <label class="checkbox">
+                    {{  field(type="checkbox")  }}
+                    {{ field.label }}
+            </label>
+            </div>
+        </div>
+
+    {%- elif field.type == 'StringField' %}
+        <div class="field">
+            <label class="label">{{ field.label }}</label>
+            <div class="control">
+                {{  field(class="input", type="text")  }}
+            </div>
+            {% for error in field.errors %}
+                <p class="help is-danger">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+    {%- elif field.type == 'SubmitField' %}
+        <div class="field">
+            <div class="control">
+                <button class="button is-link">{{ field.label }}</button>
+            </div>
+        </div>
+
+    {%- else %}
+        <div class="field">
+            <label class="label">{{ field.label }}</label>
+            <div class="control">
+                {{  field  }}
+            </div>
+            {% for error in field.errors %}
+                <p class="help is-danger">{{ error }}</p>
+            {% endfor %}
+        </div>
+
+    {% endif %}
+{% endmacro %}
+
+{% macro quick_form(form) %}
+    <form action="" method="POST" novalidate>
+        {{ form.hidden_tag() }}
+
+        {%- for field in form %}
+            {% if field.widget.input_type != 'hidden' -%}
+                {{ form_field(field) }}
+            {%- endif %}
+        {%- endfor %} 
+    </form>
+{% endmacro %}
