@@ -26,7 +26,7 @@ def login():
         )
 
         # if user is not found or password is not correct, redirect to login page
-        if user is None or not user.check_password(form.password.data):
+        if user is None or not user.check_password_hash(form.password.data):
             flash('Invalid username or password')
             return redirect(url_for('login'))
         
