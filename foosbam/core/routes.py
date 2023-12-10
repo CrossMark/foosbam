@@ -76,5 +76,4 @@ def show_results():
         Result.score_white,
         Result.status
     ).all()
-    print(type(results[0][1]))
     return render_template("core/show_results.html", results=results)
