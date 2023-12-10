@@ -1,1 +1,3 @@
-from foosbam import app
+from foosbam import create_app
+
+app = create_app()
