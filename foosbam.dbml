@@ -1,0 +1,69 @@
+Table users {
+  id            integer [primary key]
+  username      varchar
+  email         varchar
+  password_hash varchar
+}
+
+Table matches {
+  id          integer [primary key]
+  played_at   timestamp
+  att_black   integer
+  att_white   integer
+  def_black   integer
+  def_white   integer
+}
+
+Table results {
+  id                integer [primary key]
+  match_id          integer
+  created_at        timestamp
+  created_by        varchar
+  checked_at        timestamp
+  checked_by        varchar
+  status            varchar
+  score_black       integer
+  score_white       integer
+  klinker_att_black integer
+  klinker_att_white integer
+  klinker_def_black integer
+  klinker_def_white integer
+  keeper_black      integer
+  keeper_white      integer
+}
+
+Table ratings {
+  id      integer [primary key]
+  user_id integer
+  since   timestamp
+  rating  integer
+}
+
+Table ratings_def {
+  id      integer [primary key]
+  user_id integer
+  since   timestamp
+  rating  integer
+}
+
+Table ratings_att {
+  id      integer [primary key]
+  user_id integer
+  since   timestamp
+  rating  integer
+}
+
+Ref: matches.att_black > users.id
+Ref: matches.att_white > users.id
+Ref: matches.def_black > users.id
+Ref: matches.def_white > users.id
+
+Ref: results.match_id > matches.id
+Ref: results.created_by > users.id
+Ref: results.checked_by > users.id
+
+Ref: ratings.user_id > users.id
+
+Ref: ratings_def.user_id > users.id
+
+Ref: ratings_att.user_id > users.id
