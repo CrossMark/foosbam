@@ -33,7 +33,7 @@ def login():
 
         # if next_page is not found, redirect to index. else to next_page
         if not next_page or urlsplit(next_page).netloc != '':
-            next_age = url_for('core.index')
+            next_page = url_for('core.index')
         return redirect(next_page)
     return render_template('auth/login.html', form=form)
 
