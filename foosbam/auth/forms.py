@@ -1,9 +1,9 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
-from wtforms.validators import DataRequired, EqualTo, Email, ValidationError
-import sqlalchemy as sa
 from foosbam import db
 from foosbam.models import User
+import sqlalchemy as sa
+from wtforms import BooleanField, PasswordField, StringField, SubmitField
+from wtforms.validators import DataRequired, Email, EqualTo, ValidationError
 
 class LoginForm(FlaskForm):
     username = StringField('Name', validators=[DataRequired()])

@@ -5,17 +5,28 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 import os
 
-app = Flask(__name__)
-app.config.from_object(Config)
+db = SQLAlchemy()
+migrate = Migrate()
+login = LoginManager()
+login.login_view = 'auth.login'
 
-db = SQLAlchemy(app)
+def create_app(config_class=Config):
+    app = Flask(__name__)
+    app.config.from_object(Config)
+    
+    db.init_app(app)
+    if os.environ.get('FLASK_ENV') == 'development':
+        migrate.init_app(app, db, render_as_batch=True)
+    else:
+        migrate.init_app(app, db)
+    login.init_app(app)
 
-if os.environ.get('FLASK_ENV') == 'development':
-    migrate = Migrate(app, db, render_as_batch=True)
-else:
-    migrate = Migrate(app, db)
+    from foosbam.auth import bp as auth_bp
+    app.register_blueprint(auth_bp, url_prefix='/auth')
 
-login = LoginManager(app)
-login.login_view = 'login'
+    from foosbam.core import bp as core_bp
+    app.register_blueprint(core_bp)
 
-from foosbam import routes, models
+    return app
+
+from foosbam import models

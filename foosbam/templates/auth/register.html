@@ -4,4 +4,5 @@
 {% block content %}
     <h1>Register new user</h1>
     {{ m.quick_form(form) }}
+    <p>Already registered? <a href="{{ url_for('auth.login') }}">Click here to sign in!</a></p>
 {% endblock %}
