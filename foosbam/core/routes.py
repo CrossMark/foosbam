@@ -29,15 +29,6 @@ def add_result():
         form.keeper_white.data = 0
 
     if form.validate_on_submit():
-        # form.date.default = datetime.now().date()
-        # form.time.default = datetime.now().time()
-        # form.klinker_att_black.default = 0
-        # form.klinker_def_black.default = 0
-        # form.klinker_att_white.default = 0
-        # form.klinker_def_white.default = 0
-        # form.keeper_black.default = 0
-        # form.keeper_white.default = 0
-
         played_at_timestamp = datetime.combine(form.date.data, form.time.data)
 
         match = Match(
@@ -71,3 +62,19 @@ def add_result():
         return redirect(url_for('core.index'))
 
     return render_template("core/add_result.html", form=form)
+
+@bp.route('/show_results')
+@login_required
+def show_results():
+    results = Result.query.join(Match).add_columns(
+        Match.played_at,
+        Match.att_black,
+        Match.def_black,
+        Match.att_white,
+        Match.def_white,
+        Result.score_black,
+        Result.score_white,
+        Result.status
+    ).all()
+    print(type(results[0][1]))
+    return render_template("core/show_results.html", results=results)

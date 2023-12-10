@@ -3,11 +3,13 @@
 {% block content %}
     {% if current_user.is_anonymous %}
         <h1>Welcome to Foosbam!</h1>
+        <br>
 
         With this webapp, you can easily track the results of your foosball games. To start, create an account! You can find a register button in the menu.
 
     {% else %}
         <h1>Hi {{ current_user.username  }}, welcome to Foosbam!</h1>
+        <br>
         
         Use one of the buttons below to add a new result or show past results.
 
@@ -15,6 +17,10 @@
         
         <a class="button is-link", href="{{ url_for('core.add_result')  }}">
             Add result
+        </a>
+
+        <a class="button is-link", href="{{ url_for('core.show_results')  }}">
+            Show results
         </a>
 
     {% endif %}
