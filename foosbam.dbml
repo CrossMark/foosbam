@@ -33,24 +33,27 @@ Table results {
 }
 
 Table ratings {
-  id      integer [primary key]
-  user_id integer
-  since   timestamp
-  rating  integer
+  id        integer [primary key]
+  user_id   integer
+  match_id  integer
+  since     timestamp
+  rating    integer
 }
 
 Table ratings_def {
-  id      integer [primary key]
-  user_id integer
-  since   timestamp
-  rating  integer
+  id        integer [primary key]
+  user_id   integer
+  match_id  integer
+  since     timestamp
+  rating    integer
 }
 
 Table ratings_att {
-  id      integer [primary key]
-  user_id integer
-  since   timestamp
-  rating  integer
+  id        integer [primary key]
+  user_id   integer
+  match_id  integer
+  since     timestamp
+  rating    integer
 }
 
 Ref: matches.att_black > users.id
@@ -63,7 +66,10 @@ Ref: results.created_by > users.id
 Ref: results.checked_by > users.id
 
 Ref: ratings.user_id > users.id
+Ref: ratings.match_id > matches.id
 
 Ref: ratings_def.user_id > users.id
+Ref: ratings_def.match_id > matches.id
 
 Ref: ratings_att.user_id > users.id
+Ref: ratings_att.match_id > matches.id
