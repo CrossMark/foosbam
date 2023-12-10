@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: e65f183ebfd6
+Revision ID: 67a57b1ea462
 Revises: bb14b02066e8
-Create Date: 2023-12-10 16:33:54.090896
+Create Date: 2023-12-10 18:38:24.911164
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'e65f183ebfd6'
+revision = '67a57b1ea462'
 down_revision = 'bb14b02066e8'
 branch_labels = None
 depends_on = None
@@ -46,13 +46,41 @@ def upgrade():
     op.create_table('ratings',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('match_id', sa.Integer(), nullable=False),
     sa.Column('since', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('rating', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['match_id'], ['matches.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     with op.batch_alter_table('ratings', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_ratings_since'), ['since'], unique=False)
+
+    op.create_table('ratings_att',
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('match_id', sa.Integer(), nullable=False),
+    sa.Column('since', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('rating', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['match_id'], ['matches.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    with op.batch_alter_table('ratings_att', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_ratings_att_since'), ['since'], unique=False)
+
+    op.create_table('ratings_def',
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('match_id', sa.Integer(), nullable=False),
+    sa.Column('since', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('rating', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['match_id'], ['matches.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    with op.batch_alter_table('ratings_def', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_ratings_def_since'), ['since'], unique=False)
 
     op.create_table('results',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
@@ -97,6 +125,14 @@ def downgrade():
         batch_op.drop_index(batch_op.f('ix_results_created_at'))
 
     op.drop_table('results')
+    with op.batch_alter_table('ratings_def', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_ratings_def_since'))
+
+    op.drop_table('ratings_def')
+    with op.batch_alter_table('ratings_att', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_ratings_att_since'))
+
+    op.drop_table('ratings_att')
     with op.batch_alter_table('ratings', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_ratings_since'))
 
