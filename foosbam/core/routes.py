@@ -98,19 +98,4 @@ def show_results():
         u_def_white,
         Match.att_black == u_def_white.id
     ).all()
-
-    print(results)
-
-    print(results[0])
-
-    # results = Result.query.join(Match).add_columns(
-    #     Match.played_at,
-    #     Match.att_black,
-    #     Match.def_black,
-    #     Match.att_white,
-    #     Match.def_white,
-    #     Result.score_black,
-    #     Result.score_white,
-    #     Result.status
-    # ).all()
     return render_template("core/show_results.html", results=results)
