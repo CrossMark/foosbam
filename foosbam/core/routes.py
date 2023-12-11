@@ -5,6 +5,7 @@ from foosbam import db
 from foosbam.models import Match, Result, User
 from foosbam.core import bp
 from foosbam.core.forms import AddMatchForm
+from sqlalchemy.orm import aliased
 
 @bp.route('/')
 @bp.route('/index')
@@ -15,7 +16,7 @@ def index():
 @login_required
 def add_result():
     form = AddMatchForm()
-    players = [(p.id, p.username) for p in User.query.order_by('username')]
+    players = [(p.id, p.username.title()) for p in User.query.order_by('username')]
     form.att_black.choices = form.def_black.choices = form.att_white.choices = form.def_white.choices = players
 
     if request.method == 'GET':
@@ -66,14 +67,50 @@ def add_result():
 @bp.route('/show_results')
 @login_required
 def show_results():
-    results = Result.query.join(Match).add_columns(
+
+    u_att_black = aliased(User)
+    u_def_black = aliased(User)
+    u_att_white = aliased(User)
+    u_def_white = aliased(User)
+
+    results = db.session.query(
         Match.played_at,
-        Match.att_black,
-        Match.def_black,
-        Match.att_white,
-        Match.def_white,
-        Result.score_black,
-        Result.score_white,
+        u_att_black.username.label('att_black'),              
+        u_def_black.username.label('def_black'),                
+        u_att_white.username.label('att_white'),              
+        u_def_white.username.label('def_white'),                
+        Result.score_black,     
+        Result.score_white,       
         Result.status
+    ).join(
+        Match,
+        Result.match_id == Match.id
+    ).join(
+        u_att_black,
+        Match.att_black == u_att_black.id
+    ).join(
+        u_def_black,
+        Match.def_black == u_def_black.id
+    ).join(
+        u_att_white,
+        Match.att_black == u_att_white.id
+    ).join(
+        u_def_white,
+        Match.att_black == u_def_white.id
     ).all()
+
+    print(results)
+
+    print(results[0])
+
+    # results = Result.query.join(Match).add_columns(
+    #     Match.played_at,
+    #     Match.att_black,
+    #     Match.def_black,
+    #     Match.att_white,
+    #     Match.def_white,
+    #     Result.score_black,
+    #     Result.score_white,
+    #     Result.status
+    # ).all()
     return render_template("core/show_results.html", results=results)

@@ -22,10 +22,10 @@
             {% for result in results%}
             <tr>
                 <th>{{ result.played_at.strftime('%Y-%m-%d %H:%M') }}</th>
-                <td>{{ result.att_black }}</td>
-                <td>{{ result.def_black }}</td>
-                <td>{{ result.att_white }}</td>
-                <td>{{ result.def_white }}</td>
+                <td>{{ result.att_black.title() }}</td>
+                <td>{{ result.def_black.title() }}</td>
+                <td>{{ result.att_white.title() }}</td>
+                <td>{{ result.def_white.title() }}</td>
                 <td>{{ result.score_black }}</td>
                 <td>{{ result.score_white }}</td>
                 <td>{{ result.status }}</td>

@@ -17,7 +17,7 @@ def login():
     if form.validate_on_submit():
         # try to get User from database
         user = db.session.scalar(
-            sa.select(User).where(User.username == form.username.data)
+            sa.select(User).where(User.username == form.username.data.lower())
         )
 
         # if user is not found or password is not correct, redirect to login page
@@ -51,12 +51,12 @@ def register():
     form = RegistrationForm()
 
     if form.validate_on_submit():
-        user = User(username=form.username.data, email=form.email.data)
+        user = User(username=form.username.data.lower(), email=form.email.data.lower())
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
 
-        flash(f"Have fun with Foosbam, {user.username}!")
+        flash(f"Have fun with Foosbam, {user.username.title()}!")
 
         return redirect(url_for('auth.login'))
     return render_template('auth/register.html', form=form)
