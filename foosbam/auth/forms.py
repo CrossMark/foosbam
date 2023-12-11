@@ -20,12 +20,12 @@ class RegistrationForm(FlaskForm):
 
     def validate_username(self, username):
         user = db.session.scalar(sa.select(User).where(
-            User.username == username.data))
+            User.username == username.data.lower()))
         if user is not None:
             raise ValidationError('Username already in use. Please use a different username.')
 
     def validate_email(self, email):
         user = db.session.scalar(sa.select(User).where(
-            User.email == email.data))
+            User.email == email.data.lower()))
         if user is not None:
             raise ValidationError('Email already in use. Please use a different email address.')

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Results</h1>
+    <br>
+
+    <div class="table-container">
+        <table class="table is-striped is-hoverable">
+            <thead>
+            <tr>
+                <th>Date</th>
+                <th>Black - Attacker</th>
+                <th>Black - Defender</th>
+                <th>White - Attacker</th>
+                <th>White - Defender</th> 
+                <th>Black - Score</th>
+                <th>White - Score</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for result in results%}
+            <tr>
+                <th>{{ result.played_at.strftime('%Y-%m-%d %H:%M') }}</th>
+                <td>{{ result.att_black.title() }}</td>
+                <td>{{ result.def_black.title() }}</td>
+                <td>{{ result.att_white.title() }}</td>
+                <td>{{ result.def_white.title() }}</td>
+                <td>{{ result.score_black }}</td>
+                <td>{{ result.score_white }}</td>
+                <td>{{ result.status }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

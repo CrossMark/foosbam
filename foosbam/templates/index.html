@@ -1,8 +1,27 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Hi {{ current_user.username  }}, welcome to Foosbam!</h1>
-    <a href=https://docs.google.com/spreadsheets/d/1LRy2vC8T3n3bLGlvqqN7l-e-jk24V-7ceWOuaDg9vKk><button type="button">New result</button></a>
-    <button type="button">Previous results</button>
-    <button type="button">Ranking</button>
+    {% if current_user.is_anonymous %}
+        <h1>Welcome to Foosbam!</h1>
+        <br>
+
+        With this webapp, you can easily track the results of your foosball games. To start, create an account! You can find a register button in the navigation bar.
+
+    {% else %}
+        <h1>Hi {{ current_user.username.title()  }}, welcome to Foosbam!</h1>
+        <br>
+        
+        Use one of the buttons below to add a new result or show past results.
+
+        <br>
+        
+        <a class="button is-link", href="{{ url_for('core.add_result')  }}">
+            Add result
+        </a>
+
+        <a class="button is-link", href="{{ url_for('core.show_results')  }}">
+            Show results
+        </a>
+
+    {% endif %}
 {% endblock %}
