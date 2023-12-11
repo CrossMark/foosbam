@@ -111,14 +111,14 @@
     {%- elif field.name == 'add_result' %}
         <div class="field">
             <div class="control">
-                <button class="button is-success">{{ field.label }}</button>
+                <input class="button is-success" type="submit" value="{{ field.name }}"></input>
             </div>
         </div>
 
     {%- elif field.type == 'SubmitField' %}
         <div class="field">
             <div class="control">
-                <button class="button is-link">{{ field.label }}</button>
+                <input class="button is-link" type="submit" value="{{ field.name }}"></input>
             </div>
         </div>
 

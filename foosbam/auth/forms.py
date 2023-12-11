@@ -9,14 +9,14 @@ class LoginForm(FlaskForm):
     username = StringField('Name', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
     remember_me = BooleanField('Remember me')
-    submit = SubmitField('Sign in')
+    submit = SubmitField('Sign in', name="Sign in")
 
 class RegistrationForm(FlaskForm):
     username = StringField('Name', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     password_validation = PasswordField('Repeat password for validation', validators=[DataRequired(), EqualTo('password')])
-    submit = SubmitField('Register')
+    submit = SubmitField('Register', name="Register")
 
     def validate_username(self, username):
         user = db.session.scalar(sa.select(User).where(

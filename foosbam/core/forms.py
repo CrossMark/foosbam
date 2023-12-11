@@ -21,4 +21,4 @@ class AddMatchForm(FlaskForm):
     keeper_black = IntegerField('Team Black - Keeper Goals', validators=[InputRequired()])
     keeper_white = IntegerField('Team White - Keeper Goals', validators=[InputRequired()])
 
-    add_result = SubmitField('Add result')      
+    add_result = SubmitField('Add result', name='Add result')      
