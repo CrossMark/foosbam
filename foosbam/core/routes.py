@@ -93,9 +93,9 @@ def show_results():
         Match.def_black == u_def_black.id
     ).join(
         u_att_white,
-        Match.att_black == u_att_white.id
+        Match.att_white == u_att_white.id
     ).join(
         u_def_white,
-        Match.att_black == u_def_white.id
+        Match.def_white == u_def_white.id
     ).all()
     return render_template("core/show_results.html", results=results)
