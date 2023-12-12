@@ -1,9 +1,9 @@
+from datetime import datetime
+from flask_login import UserMixin
+from foosbam import db, login
 import sqlalchemy as sa 
 import sqlalchemy.orm as so
-from foosbam import db, login
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin
-from datetime import datetime
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
