@@ -1,4 +1,5 @@
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from flask import redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from foosbam import db
@@ -6,6 +7,11 @@ from foosbam.models import Match, Result, User
 from foosbam.core import bp
 from foosbam.core.forms import AddMatchForm
 from sqlalchemy.orm import aliased
+
+def change_timezone(from_dt, from_timezone, to_timezone):
+    from_dt = from_dt.replace(tzinfo=ZoneInfo(from_timezone))
+    to_dt = from_dt.astimezone(ZoneInfo(to_timezone))
+    return to_dt
 
 @bp.route('/')
 @bp.route('/index')
@@ -20,8 +26,8 @@ def add_result():
     form.att_black.choices = form.def_black.choices = form.att_white.choices = form.def_white.choices = players
 
     if request.method == 'GET':
-        form.date.data = datetime.now().date()
-        form.time.data = datetime.now().time()
+        form.date.data = datetime.now(ZoneInfo('Europe/Amsterdam')).date()
+        form.time.data = datetime.now(ZoneInfo('Europe/Amsterdam')).time()
         form.klinker_att_black.data = 0
         form.klinker_def_black.data = 0
         form.klinker_att_white.data = 0
@@ -30,7 +36,7 @@ def add_result():
         form.keeper_white.data = 0
 
     if form.validate_on_submit():
-        played_at_timestamp = datetime.combine(form.date.data, form.time.data)
+        played_at_timestamp = datetime.combine(form.date.data, form.time.data).astimezone(ZoneInfo('Etc/UTC'))
 
         match = Match(
             played_at=played_at_timestamp, 
@@ -98,4 +104,32 @@ def show_results():
         u_def_white,
         Match.def_white == u_def_white.id
     ).all()
-    return render_template("core/show_results.html", results=results)
+
+    results_as_dict = [
+        dict(
+            zip(
+                [
+                    'played_at',
+                    'att_black',
+                    'def_black',
+                    'att_white',
+                    'def_white',
+                    'score_black',
+                    'score_white',
+                    'status',
+                ],
+                result,
+            )
+        )
+        for result in results
+    ]
+
+    results_frontend = [
+        {
+            key: change_timezone(value, 'Etc/UTC', 'Europe/Amsterdam') if key == 'played_at' else value
+            for key, value in result.items()
+        }
+        for result in results_as_dict
+    ]
+    
+    return render_template("core/show_results.html", results=results_frontend)
