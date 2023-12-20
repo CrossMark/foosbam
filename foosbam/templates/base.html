@@ -6,26 +6,7 @@
         <link rel="stylesheet" href= "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"> 
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-        <script>
-            $(document).ready(function() {
-            // Check for click events on the navbar burger icon
-                $(".navbar-burger").click(function() {
-                    // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
-                    $(".navbar-burger").toggleClass("is-active");
-                    $(".navbar-menu").toggleClass("is-active");
-                });
-            });
-        </script>
-
-        <script>
-            $(document).ready(function() {
-            // Check for click events on delete icon
-                $(".delete").click(function() {
-                    // Remove "notification"
-                    $(".notification").remove();
-                });
-            });
-        </script>
+        <script src="{{ url_for('static', filename='js/jquery.js') }}"></script>
     </head>
     <body>
         <!--Navigation bar-->
