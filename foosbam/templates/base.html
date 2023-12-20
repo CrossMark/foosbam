@@ -57,18 +57,28 @@
                 </div>
             </div>
         </nav>
+        
+        <!-- The actual page -->
+        <div>
+            <!-- Notifications -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="container">
+                    <div class="columns is-centered">
+                        <div class="column">
+                            <div class="notification {{ category }}">
+                                <button class="delete"></button>
+                                {{ message }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        <!--Alerts and messages-->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-            <div class="notification {{ category }}">
-                <button class="delete"></button>
-                {{ message }}
-            </div>
-            {% endfor %}
-        {% endif %}
-        {% endwith %}
-        {% block content %}{% endblock %}
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
+            {% block content %}{% endblock %}
+        </div>
     </body>
 </html>

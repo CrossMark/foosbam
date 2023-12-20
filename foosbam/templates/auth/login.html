@@ -2,8 +2,23 @@
 {% import "macros.html" as m %}
 
 {% block content %}
-    <h1>Sign in</h1>
-    {{ m.quick_form(form) }}
-    <p>New user? <a href="{{ url_for('auth.register') }}">Click here to create an account!</a></p>
-    <p>Forgot your password? <a href="{{ url_for('auth.request_password_reset') }}">Click here to reset it!</a></p>
+
+<section class="hero has-background-light is-fullheight-with-navbar">
+    <div class="hero-body">
+        <div class="container has-text-centered">
+            <div class="columns is-centered">
+                <div class="column is-narrow">
+                    <p class="title">
+                        Sign in
+                    </p>
+                    <div class="box">
+                        {{ m.quick_form(form) }}
+                    </div>
+                    <p>New user? <a href="{{ url_for('auth.register') }}">Click here to create an account!</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 {% endblock %}
