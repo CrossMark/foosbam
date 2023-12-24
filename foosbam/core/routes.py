@@ -3,9 +3,10 @@ from zoneinfo import ZoneInfo
 from flask import redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from foosbam import db
-from foosbam.models import Match, Result, User
+from foosbam.models import Match, Rating, Result, User
 from foosbam.core import bp
 from foosbam.core.forms import AddMatchForm
+import sqlalchemy as sa
 from sqlalchemy.orm import aliased
 
 def change_timezone(from_dt, from_timezone, to_timezone):
@@ -65,6 +66,43 @@ def add_result():
 
 
         db.session.add(result)
+        db.session.flush()
+
+
+        # CALCULATE NEW RATINGS
+
+        ## GET CURRENT RATINGS
+
+        ### QUERY
+        # SELECT * FROM ratings 
+        # WHERE user_id = form.att_black.data 
+        # ORDER BY since DESC 
+        # LIMIT 1
+
+        query_att_black = sa.select(Rating).where(Rating.user_id == form.att_black.data).order_by(Rating.since.desc())
+        rating_att_black = db.session.scalar(query_att_black)
+        
+        query_def_black = sa.select(Rating).where(Rating.user_id == form.def_black.data).order_by(Rating.since.desc())
+        rating_def_black = db.session.scalar(query_def_black)
+
+        query_att_white = sa.select(Rating).where(Rating.user_id == form.att_white.data).order_by(Rating.since.desc())
+        rating_att_white = db.session.scalar(query_att_white)
+
+        query_def_white = sa.select(Rating).where(Rating.user_id == form.def_white.data).order_by(Rating.since.desc())
+        rating_def_white = db.session.scalar(query_def_white)
+
+        ## GET TOTAL NUMBER OF GAMES
+
+        ### QUERY
+        # SELECT COUNT(match_id) FROM matches
+        # WHERE user_id IN (att_black, def_black, att_white, def_white)
+
+        ## CONSTRUCT DATAFRAME
+
+        ## CALCULATE NEW RATINGS
+
+        ## ADD NEW RATINGS TO DB
+    
         db.session.commit()
         return redirect(url_for('core.index'))
 
