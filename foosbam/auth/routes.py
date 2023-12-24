@@ -3,7 +3,7 @@ from flask_login import current_user, login_user, logout_user
 from foosbam import db
 from foosbam.auth import bp
 from foosbam.auth.forms import LoginForm, RegistrationForm
-from foosbam.models import User
+from foosbam.models import User, Rating, Rating_att, Rating_def
 import sqlalchemy as sa
 from urllib.parse import urlsplit
 
@@ -51,9 +51,19 @@ def register():
     form = RegistrationForm()
 
     if form.validate_on_submit():
+        # add new user to users table
         user = User(username=form.username.data.lower(), email=form.email.data.lower())
         user.set_password(form.password.data)
         db.session.add(user)
+        db.session.flush()
+
+        # add initial rating for new user to ratings table
+        rating = Rating(user_id=user.id, rating=1500)
+        rating_att = Rating_att(user_id=user.id, rating=1500)
+        rating_def = Rating_def(user_id=user.id, rating=1500)
+        db.session.add(rating)
+        db.session.add(rating_att)
+        db.session.add(rating_def)
         db.session.commit()
 
         flash(f"Have fun with Foosbam, {user.username.title()}!", "is-success")
