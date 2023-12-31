@@ -1,10 +1,9 @@
 from datetime import datetime
-import elo
 from flask import redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from foosbam import db
 from foosbam.models import Match, Rating, Result, User
-from foosbam.core import bp
+from foosbam.core import bp, elo
 from foosbam.core.forms import AddMatchForm
 import pandas as pd
 import sqlalchemy as sa
