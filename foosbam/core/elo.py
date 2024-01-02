@@ -25,16 +25,6 @@
 # Functionality for recalculating ELO scores over all (accepted) games
 
 import math
-import pandas as pd
-
-players = [
-    {"name": "mark",   "role": "att_black", "team": "black", "rating": 1500, 'num_games': 200},
-    {"name": "wessel", "role": "def_black", "team": "black", "rating": 1500, 'num_games': 130},
-    {"name": "robin",  "role": "att_white", "team": "white", "rating": 1200, 'num_games': 270},
-    {"name": "joeke",  "role": "def_white", "team": "white", "rating": 1300, 'num_games': 245}
-]
-
-df = pd.DataFrame.from_records(players)
 
 def get_opponent_ratings(df, row):
     own_team = row['team']
@@ -66,17 +56,17 @@ def get_winner(score_black, score_white):
     else:
         return "white"
 
-def calculate_rating(row, point_factor, winner):
+def calculate_new_rating(row, point_factor, winner):
     if row['team'] == winner:
         return int(round(row['rating'] + row['k_factor'] * point_factor  * (1 - row['player_expected']), 0))
     else:
         return int(round(row['rating'] + row['k_factor'] * point_factor  * (0 - row['player_expected']), 0))
-
-df['opp_ratings'] = df.apply(lambda x : get_opponent_ratings(df, x), axis=1)
-df['player_expected'] = df.apply(lambda x : calculate_expected_player_score(x), axis=1)
-df['k_factor'] = df.apply(lambda x : calculate_k_factor(x), axis=1)
-point_factor = calculate_point_factor(10, 8)
-winner = get_winner(10, 8)
-df['new_rating'] = df.apply(lambda x : calculate_rating(x, point_factor, winner), axis=1)
-
-print(df)
+    
+def calculate_rating(df, score_black, score_white):
+    df['opp_ratings'] = df.apply(lambda x : get_opponent_ratings(df, x), axis=1)
+    df['player_expected'] = df.apply(lambda x : calculate_expected_player_score(x), axis=1)
+    df['k_factor'] = df.apply(lambda x : calculate_k_factor(x), axis=1)
+    point_factor = calculate_point_factor(score_black, score_white)
+    winner = get_winner(score_black, score_white)
+    df['new_rating'] = df.apply(lambda x : calculate_new_rating(x, point_factor, winner), axis=1)
+    return df
