@@ -24,6 +24,7 @@
 # When a new player registers, add a record for this player in the 3 ratings tables, with the default rating.
 # Functionality for recalculating ELO scores over all (accepted) games
 
+from foosbam.models import Match, Rating, Result, User
 import math
 
 def get_opponent_ratings(df, row):
@@ -70,3 +71,32 @@ def calculate_rating(df, score_black, score_white):
     winner = get_winner(score_black, score_white)
     df['new_rating'] = df.apply(lambda x : calculate_new_rating(x, point_factor, winner), axis=1)
     return df
+
+def add_initial_ratings(db):
+    # add inital rating for every user
+
+    ## get current players
+    players = [p.id for p in User.query]
+
+    ## create initial ratings for every player
+    ratings = [Rating(user_id=pid, rating=1500) for pid in players]
+
+    ## add initial ratings to database
+    db.session.add_all(ratings)
+    db.session.commit()
+
+def create_existing_ratings(db):
+    # loop over all matches already played and add ratings for these matches
+
+    ## get already played matches (in order!)
+    matches = [(m.id, m.att_black, m.def_black, m.att_white, m.def_white) for m in Match.query.order_by('played_at')]
+
+    ## get results of already played matches
+    results = [(r.match_id, r.score_black, r.score_white) for r in Result.query]
+
+    
+
+
+def fill_database(db):
+    add_initial_ratings(db)
+    create_existing_ratings(db)
