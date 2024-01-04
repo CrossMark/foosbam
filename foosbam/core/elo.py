@@ -24,8 +24,68 @@
 # When a new player registers, add a record for this player in the 3 ratings tables, with the default rating.
 # Functionality for recalculating ELO scores over all (accepted) games
 
+from foosbam import db
 from foosbam.models import Match, Rating, Result, User
 import math
+import pandas as pd
+import sqlalchemy as sa
+
+
+def get_most_recent_rating(user_id):
+    # QUERY
+    ## SELECT * FROM ratings 
+    ## WHERE user_id = form.att_black.data 
+    ## ORDER BY since DESC 
+    ## LIMIT 1
+
+    query = sa.select(Rating).where(Rating.user_id == user_id).order_by(Rating.since.desc())
+    rating = db.session.scalar(query).rating
+    return rating
+
+def get_current_match_count(user_id):
+    # QUERY
+    ## SELECT COUNT(match_id) FROM matches
+    ## WHERE user_id IN (att_black, def_black, att_white, def_white)
+    count = Match.query.filter((Match.att_black == user_id) | (Match.def_black == user_id) | (Match.att_white == user_id) | (Match.def_white == user_id)).count()
+    return count
+
+def get_match_count_before(user_id, before_timestamp):
+    # QUERY
+    ## SELECT COUNT(match_id) FROM matches
+    ## WHERE user_id IN (att_black, def_black, att_white, def_white)
+    ## AND played_at < before_timestamp
+
+    count = Match.query.filter((Match.att_black == user_id) | (Match.def_black == user_id) | (Match.att_white == user_id) | (Match.def_white == user_id)). \
+         filter(Match.played_at < before_timestamp). \
+         count()
+    return count
+
+def construct_dataframe(user_ids, match_id, played_at, score_black, score_white):
+    roles = [
+        'att_black',
+        'def_black',
+        'att_white',
+        'def_white'
+    ]
+
+    teams = [
+        'black',
+        'black',
+        'white',
+        'white'
+    ]
+
+    ratings = [get_most_recent_rating(user_id) for user_id in user_ids]
+
+    counts = [get_match_count_before(user_id, played_at) for user_id in user_ids]
+
+    df = pd.DataFrame(list(zip(user_ids, roles, teams, ratings, counts)), columns=["user_id", "role", "team", "rating", "num_games"])
+
+    # CALCULATE NEW RATINGS
+    df_new_rating = calculate_rating(df, score_black, score_white)
+    df['rating_obj'] = df_new_rating.apply(lambda x : Rating(user_id=x['user_id'], match_id=match_id, rating=x['new_rating']), axis=1)
+
+    return df
 
 def get_opponent_ratings(df, row):
     own_team = row['team']
@@ -88,13 +148,29 @@ def add_initial_ratings(db):
 def create_existing_ratings(db):
     # loop over all matches already played and add ratings for these matches
 
-    ## get already played matches (in order!)
-    matches = [(m.id, m.att_black, m.def_black, m.att_white, m.def_white) for m in Match.query.order_by('played_at')]
+    ## get already played matches and results (in order!)
 
-    ## get results of already played matches
-    results = [(r.match_id, r.score_black, r.score_white) for r in Result.query]
+    matches = db.session.query(
+        Match.id,
+        Match.played_at,
+        Match.att_black,              
+        Match.def_black,                
+        Match.att_white,              
+        Match.def_white,                
+        Result.score_black,     
+        Result.score_white,       
+    ).join(
+        Match,
+        Result.match_id == Match.id
+    ).order_by('played_at')
 
-    
+    for match in matches:
+        players = [match.att_black, match.def_black, match.att_white, match.def_white]
+        df = construct_dataframe(players, match.id, match.played_at, match.score_black, match.score_white)
+
+        db.session.add_all(list(df['rating_obj']))
+
+    db.session.commit()
 
 
 def fill_database(db):
