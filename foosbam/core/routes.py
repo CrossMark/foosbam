@@ -37,7 +37,7 @@ def add_result():
         form.keeper_white.data = 0
 
     if form.validate_on_submit():
-        played_at_timestamp = datetime.combine(form.date.data, form.time.data).astimezone(ZoneInfo('Etc/UTC'))
+        played_at_timestamp = change_timezone(datetime.combine(form.date.data, form.time.data), 'Europe/Amsterdam', 'Etc/UTC')
 
         match = Match(
             played_at=played_at_timestamp, 
