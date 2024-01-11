@@ -1,13 +1,3 @@
-# Steps we need:
-
-# HAPPY FLOW
-# -----------
-# Game gets added to matches and results. The submit button on the Add Game page also triggers calculating ELO scores.
-# For every player, calculate new elo
-# For the two attackers, calculate new att elo
-# For the two defenders, calculate new def elo
-#
-#
 # ELO CALCULATION
 # ---------------
 # 1) Get latest rating from table (for each player)
@@ -18,17 +8,65 @@
 # 6) Calculate new ELO rating (for each player)
 # 7) Add rating to table
 
-#
-# DO NOT FORGET
-# -------------
-# When a new player registers, add a record for this player in the 3 ratings tables, with the default rating.
-# Functionality for recalculating ELO scores over all (accepted) games
-
 from foosbam import db
 from foosbam.models import Match, Rating, Result, User
 import math
 import pandas as pd
 import sqlalchemy as sa
+from sqlalchemy import and_
+from sqlalchemy.orm import aliased
+
+def get_current_ranking():
+    # QUERY
+    ## SELECT r1.*
+    ## FROM ratings AS r1
+    ## LEFT JOIN ratings AS r2
+    ##   ON r1.user = r2.user
+    ##   AND r1.since < r2.since
+    ## WHERE r2.user IS NULL
+    ## ORDER BY rating DESC, since ASC;
+
+    r1 = aliased(Rating)
+    r2 = aliased(Rating)
+
+    ranking = db.session.query(
+        r1.since,
+        User.username,
+        r1.rating
+    ).join(
+        r2,
+        and_(r1.user_id == r2.user_id,
+             r1.since < r2.since
+        )
+    ).join(
+        User,
+        r1.user_id == User.id
+    ).filter(
+        r2.user_id.is_(None)
+    ).order_by(
+        r1.rating.desc()
+    ).order_by(
+        r1.since
+    )
+
+    ranking_as_dict = [
+        dict(
+            zip(
+                [
+                    'since',
+                    'player',
+                    'rating',
+                ],
+                rank,
+            )
+        )
+        for rank in ranking
+    ]
+
+    df = pd.DataFrame.from_records(ranking_as_dict)
+    df['rank'] = df['rating'].rank(method='max')
+    #df['rank'] = df['rating'].rank(method='max').astype(int)
+    return df
 
 
 def get_most_recent_rating(user_id):
@@ -133,15 +171,22 @@ def calculate_rating(df, score_black, score_white):
     return df
 
 def add_initial_ratings(db):
-    # add inital rating for every user
+    # add inital rating for every user,
+    # but only IF rating does not exist yet for this user
 
-    ## get current players
+    # get current players
     players = [p.id for p in User.query]
 
-    ## create initial ratings for every player
-    ratings = [Rating(user_id=pid, rating=1500) for pid in players]
+    ## get players that already have a rating
+    players_with_rating = [p.user_id for p in db.session.query(Rating.user_id).distinct()]
 
-    ## add initial ratings to database
+    # get players without rating
+    players_without_rating = [p for p in players if p not in players_with_rating]
+
+    # create initial ratings for every player
+    ratings = [Rating(user_id=pid, rating=1500) for pid in players_without_rating]
+
+    # add initial ratings to database
     db.session.add_all(ratings)
     db.session.commit()
 

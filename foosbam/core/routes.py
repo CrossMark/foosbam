@@ -216,3 +216,9 @@ def show_results():
     ]
     
     return render_template("core/show_results.html", results=results_frontend)
+
+@bp.route('/show_ranking')
+@login_required
+def show_results():
+    ranking = elo.get_current_ranking
+    return render_template("core/show_ranking.html", ranking=ranking)

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Current ranking</h1>
+    <br>
+
+    <div class="table-container">
+        <table class="table is-striped is-hoverable">
+            <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Player</th>
+                <th>Rating</th>
+                <th>Since</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for rank in ranking%}
+            <tr>
+                <th>{{ rank.rank }}</th>
+                <td>{{ rank.player }}</td>
+                <td>{{ rank.rating }}</td>
+                <td>{{ rank.since }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
