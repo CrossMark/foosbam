@@ -37,7 +37,7 @@ def add_result():
         form.keeper_white.data = 0
 
     if form.validate_on_submit():
-        played_at_timestamp = datetime.combine(form.date.data, form.time.data).astimezone(ZoneInfo('Etc/UTC'))
+        played_at_timestamp = change_timezone(datetime.combine(form.date.data, form.time.data), 'Europe/Amsterdam', 'Etc/UTC')
 
         match = Match(
             played_at=played_at_timestamp, 
@@ -126,7 +126,7 @@ def show_results():
     ]
 
     df = pd.DataFrame.from_records(results_as_dict)
-    df = df.sort_values(by='played_at')
+    df = df.sort_values(by='played_at', ascending=False)
 
     # Change played_at column to Amsterdam time (for frontend) and in desired format
     df['played_at'] = df['played_at'].apply(lambda x : change_timezone(x, 'Etc/UTC', 'Europe/Amsterdam'))
