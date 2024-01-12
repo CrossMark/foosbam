@@ -8,6 +8,7 @@
 # 6) Calculate new ELO rating (for each player)
 # 7) Add rating to table
 
+from datetime import datetime
 from foosbam import db
 from foosbam.core import routes
 from foosbam.models import Match, Rating, Result, User
@@ -137,7 +138,7 @@ def construct_dataframe(user_ids, match_id, played_at, score_black, score_white)
 
     # CALCULATE NEW RATINGS
     df_new_rating = calculate_rating(df, score_black, score_white)
-    df['rating_obj'] = df_new_rating.apply(lambda x : Rating(user_id=x['user_id'], match_id=match_id, rating=x['new_rating']), axis=1)
+    df['rating_obj'] = df_new_rating.apply(lambda x : Rating(user_id=x['user_id'], match_id=match_id, since=played_at, rating=x['new_rating']), axis=1)
 
     return df
 
@@ -200,7 +201,7 @@ def add_initial_ratings(db):
     players_without_rating = [p for p in players if p not in players_with_rating]
 
     # create initial ratings for every player
-    ratings = [Rating(user_id=pid, rating=1500) for pid in players_without_rating]
+    ratings = [Rating(user_id=pid, rating=1500, since=datetime.strptime('1900-01-01', '%Y-%m-%d')) for pid in players_without_rating]
 
     # add initial ratings to database
     db.session.add_all(ratings)
