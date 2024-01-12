@@ -15,20 +15,20 @@
                 <th>White - Defender</th> 
                 <th>Black - Score</th>
                 <th>White - Score</th>
-                <th>Status</th>
+                <!-- <th>Status</th> -->
             </tr>
             </thead>
             <tbody>
-            {% for result in results%}
+            {% for index, row in results.iterrows() %}
             <tr>
-                <th>{{ result.played_at.strftime('%Y-%m-%d %H:%M') }}</th>
-                <td>{{ result.att_black.title() }}</td>
-                <td>{{ result.def_black.title() }}</td>
-                <td>{{ result.att_white.title() }}</td>
-                <td>{{ result.def_white.title() }}</td>
-                <td>{{ result.score_black }}</td>
-                <td>{{ result.score_white }}</td>
-                <td>{{ result.status }}</td>
+                <th>{{ row['played_at'] }}</th>
+                <td>{{ row['att_black'] }}</td>
+                <td>{{ row['def_black'] }}</td>
+                <td>{{ row['att_white'] }}</td>
+                <td>{{ row['def_white'] }}</td>
+                <td>{{ row['score_black'] }}</td>
+                <td>{{ row['score_white'] }}</td>
+                <!-- <td>{{ row['status'] }}</td> -->
             </tr>
             {% endfor %}
             </tbody>
