@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Current ranking</h1>
+    <br>
+
+    <div class="table-container">
+        <table class="table is-striped is-hoverable">
+            <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Player</th>
+                <th>Rating</th>
+                <th>Since</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for index, row in ranking.iterrows() %}
+            <tr>
+                <th>{{ row['rank'] }}</th>
+                <td>{{ row['player'] }}</td>
+                <td>{{ row['rating'] }}</td>
+                <td>{{ row['since'] }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

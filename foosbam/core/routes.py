@@ -1,13 +1,14 @@
 from datetime import datetime
-from zoneinfo import ZoneInfo
 from flask import redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from foosbam import db
-from foosbam.models import Match, Result, User
-from foosbam.core import bp
+from foosbam.models import Match, Rating, Result, User
+from foosbam.core import bp, elo
 from foosbam.core.forms import AddMatchForm
 import pandas as pd
+import sqlalchemy as sa
 from sqlalchemy.orm import aliased
+from zoneinfo import ZoneInfo
 
 def change_timezone(from_dt, from_timezone, to_timezone):
     from_dt = from_dt.replace(tzinfo=ZoneInfo(from_timezone))
@@ -64,8 +65,89 @@ def add_result():
             keeper_white = form.keeper_white.data
         )
 
-
         db.session.add(result)
+        db.session.flush()
+
+
+        # CALCULATE NEW RATINGS
+
+        ## GET CURRENT RATINGS
+
+        ### QUERY
+        # SELECT * FROM ratings 
+        # WHERE user_id = form.att_black.data 
+        # ORDER BY since DESC 
+        # LIMIT 1
+
+        query_att_black = sa.select(Rating).where(Rating.user_id == form.att_black.data).order_by(Rating.since.desc())
+        rating_att_black = db.session.scalar(query_att_black).rating
+        
+        query_def_black = sa.select(Rating).where(Rating.user_id == form.def_black.data).order_by(Rating.since.desc())
+        rating_def_black = db.session.scalar(query_def_black).rating
+
+        query_att_white = sa.select(Rating).where(Rating.user_id == form.att_white.data).order_by(Rating.since.desc())
+        rating_att_white = db.session.scalar(query_att_white).rating
+
+        query_def_white = sa.select(Rating).where(Rating.user_id == form.def_white.data).order_by(Rating.since.desc())
+        rating_def_white = db.session.scalar(query_def_white).rating
+
+        ## GET TOTAL NUMBER OF GAMES
+
+        ### QUERY
+        # SELECT COUNT(match_id) FROM matches
+        # WHERE user_id IN (att_black, def_black, att_white, def_white)
+
+        count_att_black = Match.query.filter((Match.att_black == form.att_black.data) | (Match.def_black == form.att_black.data) | (Match.att_white == form.att_black.data) | (Match.def_white == form.att_black.data)).count()
+        count_def_black = Match.query.filter((Match.att_black == form.def_black.data) | (Match.def_black == form.def_black.data) | (Match.att_white == form.def_black.data) | (Match.def_white == form.def_black.data)).count()
+        count_att_white = Match.query.filter((Match.att_black == form.att_white.data) | (Match.def_black == form.att_white.data) | (Match.att_white == form.att_white.data) | (Match.def_white == form.att_white.data)).count()
+        count_def_white = Match.query.filter((Match.att_black == form.def_white.data) | (Match.def_black == form.def_white.data) | (Match.att_white == form.def_white.data) | (Match.def_white == form.def_white.data)).count()
+
+        ## CONSTRUCT DATAFRAME
+
+        user_ids = [
+            form.att_black.data,
+            form.def_black.data,
+            form.att_white.data,
+            form.def_white.data
+        ]
+
+        roles = [
+            'att_black',
+            'def_black',
+            'att_white',
+            'def_white'
+        ]
+
+        teams = [
+            'black',
+            'black',
+            'white',
+            'white'
+        ]
+
+        ratings = [
+            rating_att_black,
+            rating_def_black,
+            rating_att_white,
+            rating_def_white
+        ]
+
+        counts = [
+            count_att_black,
+            count_def_black,
+            count_att_white,
+            count_def_white
+        ]
+
+        df = pd.DataFrame(list(zip(user_ids, roles, teams, ratings, counts)), columns=["user_id", "role", "team", "rating", "num_games"])
+
+        ## CALCULATE NEW RATINGS
+        df_new_rating = elo.calculate_rating(df, form.score_black.data, form.score_white.data)
+        df['rating_obj'] = df_new_rating.apply(lambda x : Rating(user_id=x['user_id'], match_id=match.id, rating=x['new_rating']), axis=1)
+
+        ## ADD NEW RATINGS TO DB
+        db.session.add_all(list(df['rating_obj']))
+
         db.session.commit()
         return redirect(url_for('core.index'))
 
@@ -137,3 +219,10 @@ def show_results():
         df[col] = df[col].str.title()
     
     return render_template("core/show_results.html", results=df)
+
+@bp.route('/show_ranking')
+@login_required
+def show_ranking():
+    ranking = elo.get_current_ranking()
+    return render_template("core/show_ranking.html", ranking=ranking)
+  
