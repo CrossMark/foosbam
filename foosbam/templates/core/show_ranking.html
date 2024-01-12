@@ -15,12 +15,12 @@
             </tr>
             </thead>
             <tbody>
-            {% for rank in ranking%}
+            {% for index, row in ranking.iterrows() %}
             <tr>
-                <th>{{ rank.rank }}</th>
-                <td>{{ rank.player }}</td>
-                <td>{{ rank.rating }}</td>
-                <td>{{ rank.since }}</td>
+                <th>{{ row['rank'] }}</th>
+                <td>{{ row['player'] }}</td>
+                <td>{{ row['rating'] }}</td>
+                <td>{{ row['since'] }}</td>
             </tr>
             {% endfor %}
             </tbody>

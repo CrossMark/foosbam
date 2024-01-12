@@ -219,6 +219,6 @@ def show_results():
 
 @bp.route('/show_ranking')
 @login_required
-def show_results():
-    ranking = elo.get_current_ranking
+def show_ranking():
+    ranking = elo.get_current_ranking()
     return render_template("core/show_ranking.html", ranking=ranking)

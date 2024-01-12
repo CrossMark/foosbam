@@ -9,20 +9,26 @@
 # 7) Add rating to table
 
 from foosbam import db
+from foosbam.core import routes
 from foosbam.models import Match, Rating, Result, User
 import math
 import pandas as pd
 import sqlalchemy as sa
-from sqlalchemy import and_
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import aliased
 
 def get_current_ranking():
     # QUERY
-    ## SELECT r1.*
+    ## SELECT
+    ##  r1.since,
+    ##  u.username,
+    ##  r1.rating
     ## FROM ratings AS r1
     ## LEFT JOIN ratings AS r2
     ##   ON r1.user = r2.user
     ##   AND r1.since < r2.since
+    ## LEFT JOIN users AS u
+    ##  ON r1.user_id = u.id
     ## WHERE r2.user IS NULL
     ## ORDER BY rating DESC, since ASC;
 
@@ -37,17 +43,19 @@ def get_current_ranking():
         r2,
         and_(r1.user_id == r2.user_id,
              r1.since < r2.since
-        )
+        ),
+        isouter = True
     ).join(
         User,
-        r1.user_id == User.id
+        r1.user_id == User.id,
+        isouter = True
     ).filter(
         r2.user_id.is_(None)
     ).order_by(
         r1.rating.desc()
     ).order_by(
         r1.since
-    )
+    ).all()
 
     ranking_as_dict = [
         dict(
@@ -64,10 +72,18 @@ def get_current_ranking():
     ]
 
     df = pd.DataFrame.from_records(ranking_as_dict)
-    df['rank'] = df['rating'].rank(method='max')
-    #df['rank'] = df['rating'].rank(method='max').astype(int)
-    return df
 
+    # Add rank column
+    df['rank'] = df['rating'].rank(method='min', ascending=False).astype(int)
+
+    # Change since column to Amsterdam time (for frontend) and in desired format
+    df['since'] = df['since'].apply(lambda x : routes.change_timezone(x, 'Etc/UTC', 'Europe/Amsterdam'))
+    df['since'] = df['since'].dt.strftime('%Y-%m-%d %H:%M')
+
+    # Use the title function on the player names, so they get capitals
+    df['player'] = df['player'].str.title()
+
+    return df
 
 def get_most_recent_rating(user_id):
     # QUERY
