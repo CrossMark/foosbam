@@ -1,10 +1,10 @@
 from datetime import datetime
-from flask import redirect, render_template, request, url_for
+from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from foosbam import db
 from foosbam.models import Match, Rating, Result, User
 from foosbam.core import bp, elo
-from foosbam.core.forms import AddMatchForm
+from foosbam.core.forms import AddMatchForm, EditProfileForm
 import pandas as pd
 import sqlalchemy as sa
 from sqlalchemy.orm import aliased
@@ -225,4 +225,27 @@ def show_results():
 def show_ranking():
     ranking = elo.get_current_ranking()
     return render_template("core/show_ranking.html", ranking=ranking)
-  
+
+@bp.route('/user/<user_id>')
+@login_required
+def user(user_id):
+    user = db.first_or_404(sa.select(User).where(User.id == user_id))
+    return render_template("core/user.html", user=user)
+
+@bp.route('/edit_profile', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    form = EditProfileForm()
+
+    if request.method == 'GET':
+        form.username.data = current_user.username.title()
+        form.email.data = current_user.email
+
+    if form.validate_on_submit():
+        current_user.username = form.username.data.lower()
+        current_user.email = form.email.data.lower()
+        db.session.commit()
+        flash('Your changes have been saved.', 'is-success')
+        return redirect(url_for('core.user', user_id = current_user.id))
+    
+    return render_template('core/edit_profile.html', form=form)

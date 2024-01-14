@@ -1,6 +1,10 @@
+from flask_login import current_user
 from flask_wtf import FlaskForm
-from wtforms import DateField, IntegerField, SelectField, SubmitField, TimeField
-from wtforms.validators import InputRequired
+from foosbam import db
+from foosbam.models import User
+import sqlalchemy as sa
+from wtforms import DateField, IntegerField, SelectField, SubmitField, StringField, TimeField
+from wtforms.validators import InputRequired, Email, ValidationError
 
 class AddMatchForm(FlaskForm):
     # Match fields
@@ -35,3 +39,20 @@ class AddMatchForm(FlaskForm):
             else:
                 seen.add(player.data)
         return True
+    
+class EditProfileForm(FlaskForm):
+    username = StringField('Name', validators=[InputRequired()])
+    email = StringField('Email', validators=[InputRequired(), Email()])
+    submit = SubmitField('Save', name='Save')
+
+    def validate_username(self, username):
+        user = db.session.scalar(sa.select(User).where(
+            User.username == username.data.lower()))
+        if (not username.data.lower() == current_user.username) and (user is not None):
+            raise ValidationError('Username already in use. Please use a different username.')
+
+    def validate_email(self, email):
+        user = db.session.scalar(sa.select(User).where(
+            User.email == email.data.lower()))
+        if (not email.data.lower() == current_user.email) and (user is not None):
+            raise ValidationError('Email already in use. Please use a different email address.')

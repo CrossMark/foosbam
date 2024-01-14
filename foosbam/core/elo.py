@@ -22,6 +22,7 @@ def get_current_ranking():
     # QUERY
     ## SELECT
     ##  r1.since,
+    ##  u.id,
     ##  u.username,
     ##  r1.rating
     ## FROM ratings AS r1
@@ -38,6 +39,7 @@ def get_current_ranking():
 
     ranking = db.session.query(
         r1.since,
+        User.id,
         User.username,
         r1.rating
     ).join(
@@ -63,6 +65,7 @@ def get_current_ranking():
             zip(
                 [
                     'since',
+                    'user_id',
                     'player',
                     'rating',
                 ],
