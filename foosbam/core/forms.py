@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import DateField, IntegerField, SelectField, SubmitField, TimeField
-from wtforms.validators import DataRequired, InputRequired
+from wtforms.validators import InputRequired
 
 class AddMatchForm(FlaskForm):
     # Match fields
@@ -21,4 +21,17 @@ class AddMatchForm(FlaskForm):
     keeper_black = IntegerField('Team Black - Keeper Goals', validators=[InputRequired()])
     keeper_white = IntegerField('Team White - Keeper Goals', validators=[InputRequired()])
 
-    add_result = SubmitField('Add result', name='Add result')      
+    add_result = SubmitField('Add result', name='Add result')
+  
+    def validate(self, extra_validators=None):
+        if not super().validate():
+            return False
+        
+        seen = set()
+        for player in [self.att_black, self.def_black, self.att_white, self.def_white]:
+            if player.data in seen:
+                player.errors.append('Please select four distinct players.')
+                return False
+            else:
+                seen.add(player.data)
+        return True
