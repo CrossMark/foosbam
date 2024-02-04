@@ -5,4 +5,5 @@
     <h1>Sign in</h1>
     {{ m.quick_form(form) }}
     <p>New user? <a href="{{ url_for('auth.register') }}">Click here to create an account!</a></p>
+    <p>Forgot your password? <a href="{{ url_for('auth.request_password_reset') }}">Click here to reset it!</a></p>
 {% endblock %}

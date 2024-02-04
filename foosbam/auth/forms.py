@@ -9,14 +9,14 @@ class LoginForm(FlaskForm):
     username = StringField('Name', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
     remember_me = BooleanField('Remember me')
-    submit = SubmitField('Sign in', name="Sign in")
+    submit = SubmitField('Sign in', name='Sign in')
 
 class RegistrationForm(FlaskForm):
     username = StringField('Name', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     password_validation = PasswordField('Repeat password for validation', validators=[DataRequired(), EqualTo('password')])
-    submit = SubmitField('Register', name="Register")
+    submit = SubmitField('Register', name='Register')
 
     def validate_username(self, username):
         user = db.session.scalar(sa.select(User).where(
@@ -29,3 +29,12 @@ class RegistrationForm(FlaskForm):
             User.email == email.data.lower()))
         if user is not None:
             raise ValidationError('Email already in use. Please use a different email address.')
+        
+class RequestPasswordResetForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    submit = SubmitField('Request password reset', name='Request password reset')
+
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField('Password', validators=[DataRequired()])
+    password_validation = PasswordField('Repeat password for validation', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Reset password')
