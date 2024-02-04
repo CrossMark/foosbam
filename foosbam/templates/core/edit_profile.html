@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% import "macros.html" as m %}
+
+{% block content %}
+    <h1>Edit Profile</h1>
+    <br>
+    {{ m.quick_form(form) }}
+
+    <a class="button is-danger", href="{{ url_for('core.user', user_id=current_user.id) }}">
+        Cancel
+    </a>
+{% endblock %}
