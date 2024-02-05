@@ -163,6 +163,7 @@ def show_results():
     u_def_white = aliased(User)
 
     results = db.session.query(
+        Match.id,
         Match.played_at,
         u_att_black.username.label('att_black'),              
         u_def_black.username.label('def_black'),                
@@ -192,6 +193,7 @@ def show_results():
         dict(
             zip(
                 [
+                    'id',
                     'played_at',
                     'att_black',
                     'def_black',
@@ -219,6 +221,12 @@ def show_results():
         df[col] = df[col].str.title()
     
     return render_template("core/show_results.html", results=df)
+
+@bp.route('/match/<match_id>')
+@login_required
+def match(match_id):
+    match = db.first_or_404(sa.select(Match).where(Match.id == match_id))
+    return render_template("core/match.html", match=match)
 
 @bp.route('/show_ranking')
 @login_required
