@@ -1,21 +1,28 @@
+from foosbam import db
 from foosbam.models import Match, Result, User
+import pandas as pd
+from sqlalchemy.orm import aliased
 
-def get_match_statistics(match_id):
+def get_match_and_result_details(match_id):
     # QUERY
 
     # SELECT
     #   m.played_at,
+    #   ab.id,
     #   ab.username,
+    #   db.id
     #   db.username,
+    #   aw.id,
     #   aw.username,
+    #   dw.id,
     #   dw.username,
     #   r.score_black,
     #   r.score_white,
-    #   r.klinker_att_black
-    #   r.klinker_att_white
-    #   r.klinker_def_black
-    #   r.klinker_def_white
-    #   r.keeper_black
+    #   r.klinker_att_black,
+    #   r.klinker_att_white,
+    #   r.klinker_def_black,
+    #   r.klinker_def_white,
+    #   r.keeper_black,
     #   r.keeper_white
     # FROM matches m
     # LEFT JOIN results r
@@ -28,10 +35,40 @@ def get_match_statistics(match_id):
     #   ON m.att_white = aw.id
     # LEFT JOIN user dw
     #   ON m.def_white = dw.id
+    # WHERE m.id = match_id
 
 
-    # r1 = aliased(Rating)
-    # r2 = aliased(Rating)
+    p_ab = aliased(User)
+    p_db = aliased(User)
+    p_aw = aliased(User)
+    p_dw = aliased(User)
+
+    details = db.session.query(
+        Match.id, 
+        Match.played_at,
+        Result.score_black,
+        Result.score_white
+    ).filter(
+        Match.id == match_id
+    ).join(
+        Result,
+        Match.id == Result.id,
+        isouter = True
+    )
+
+    details_dict = dict(
+            zip(
+                [
+                    'id',
+                    'played_at',
+                    'score_black',
+                    'score_white'
+                ],
+                details[0],
+            )
+        )
+
+    print(details_dict)
 
     # ranking = db.session.query(
     #     r1.since,
@@ -84,4 +121,3 @@ def get_match_statistics(match_id):
     # df['player'] = df['player'].str.title()
 
     # return df
-    pass
