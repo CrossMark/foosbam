@@ -141,7 +141,16 @@ def construct_dataframe(user_ids, match_id, played_at, score_black, score_white)
 
     # CALCULATE NEW RATINGS
     df_new_rating = calculate_rating(df, score_black, score_white)
-    df['rating_obj'] = df_new_rating.apply(lambda x : Rating(user_id=x['user_id'], match_id=match_id, since=played_at, rating=x['new_rating']), axis=1)
+    df['rating_obj'] = df_new_rating.apply(
+        lambda x : Rating(
+            user_id = x['user_id'], 
+            match_id = match_id, 
+            since = played_at,
+            previous_rating = x['rating'], 
+            rating = x['new_rating']
+        ), 
+        axis=1
+    )
 
     return df
 

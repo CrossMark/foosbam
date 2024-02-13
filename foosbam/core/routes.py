@@ -143,7 +143,15 @@ def add_result():
 
         ## CALCULATE NEW RATINGS
         df_new_rating = elo.calculate_rating(df, form.score_black.data, form.score_white.data)
-        df['rating_obj'] = df_new_rating.apply(lambda x : Rating(user_id=x['user_id'], match_id=match.id, rating=x['new_rating']), axis=1)
+        df['rating_obj'] = df_new_rating.apply(
+            lambda x : Rating(
+                user_id = x['user_id'], 
+                match_id = match.id, 
+                previous_rating = x['rating'],
+                rating = x['new_rating']
+            ), 
+            axis=1
+        )
 
         ## ADD NEW RATINGS TO DB
         db.session.add_all(list(df['rating_obj']))
