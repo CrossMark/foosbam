@@ -237,9 +237,15 @@ def match(match_id):
     match_details = details.get_match_and_result_details(match_id)
 
     # Get players
+    player_details = {
+        'att_black_id' : 1,
+        'def_black_id' : 2,
+        'att_white_id' : 3,
+        'def_white_id' : 4
+    }
 
     # Get player names
-    player_details = {}
+    player_names = {}
 
     # Get player ratings
     rating_details = {}
