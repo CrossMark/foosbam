@@ -4,26 +4,28 @@
     <h1>{{ match_details['played_at'] }}</h1>
     <h2>Team Black {{ match_details['score_black'] }} - {{ match_details['score_white'] }} Team White</h2>
 
-    <table>
+    <div class="table-container">
+      <table class="table">
         <thead>
           <tr>
             <th></th>
-            <th>Team Black</th>
-            <th>Team White</th>
+            <th>Defender</th>
+            <th>Attacker</th>
           </tr>
         </thead>
-        <tbody>
-          <tr>
-            <td>Attacker</td>
-            <td>{{ player_details['att_black'] }}</td>
-            <td>{{ player_details['att_white'] }}</td>
-          </tr>
-          <tr>
-            <td>Defender</td>
-            <td>{{ player_details['def_black'] }}</td>
-            <td>{{ player_details['def_white'] }}</td>
-          </tr>
-        </tbody>
-    </table>
+          <tbody>
+            <tr>
+              <th>Team Black</th>
+              <td>{{ player_details['def_black_id'] }}</td>
+              <td>{{ player_details['att_black_id'] }}</td>
+            </tr>
+            <tr>
+              <th>Team White</th>
+              <td>{{ player_details['def_white_id'] }}</td>
+              <td>{{ player_details['att_white_id'] }}</td>
+            </tr>
+          </tbody>
+      </table>
+    </div>
 
 {% endblock %}

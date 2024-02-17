@@ -250,7 +250,11 @@ def match(match_id):
     # Get player ratings
     rating_details = {}
 
-    return render_template("core/match.html", match_details, player_details, rating_details)
+    return render_template("core/match.html", 
+                           match_details=match_details, 
+                           player_details=player_details, 
+                           rating_details=rating_details
+                           )
 
 @bp.route('/show_ranking')
 @login_required
