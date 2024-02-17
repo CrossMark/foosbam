@@ -3,7 +3,7 @@ from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from foosbam import db
 from foosbam.models import Match, Rating, Result, User
-from foosbam.core import bp, elo
+from foosbam.core import bp, elo, details
 from foosbam.core.forms import AddMatchForm, EditProfileForm
 import pandas as pd
 import sqlalchemy as sa
@@ -234,7 +234,7 @@ def show_results():
 @login_required
 def match(match_id):
     # Get match results
-    match_details = match.get_match_and_result_details(match_id)
+    match_details = details.get_match_and_result_details(match_id)
 
     # Get players
 
