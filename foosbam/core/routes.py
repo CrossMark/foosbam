@@ -245,7 +245,14 @@ def match(match_id):
     }
 
     # Get player names
-    player_names = {}
+    player_names = {
+        'att_black_name' : 'Toad',
+        'def_black_name' : 'Bowser',
+        'att_white_name' : 'Mario',
+        'def_white_name' : 'Luigi'
+    }
+
+    player_details = player_details | player_names
 
     # Get player ratings
     rating_details = {}

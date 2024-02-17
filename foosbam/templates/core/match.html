@@ -16,13 +16,13 @@
           <tbody>
             <tr>
               <th>Team Black</th>
-              <td>{{ player_details['def_black_id'] }}</td>
-              <td>{{ player_details['att_black_id'] }}</td>
+              <td><a href="{{ url_for('core.user', user_id=player_details['def_black_id']) }}">{{ player_details['def_black_name'] }}</a></td>
+              <td><a href="{{ url_for('core.user', user_id=player_details['att_black_id']) }}">{{ player_details['att_black_name'] }}</a></td>
             </tr>
             <tr>
               <th>Team White</th>
-              <td>{{ player_details['def_white_id'] }}</td>
-              <td>{{ player_details['att_white_id'] }}</td>
+              <td><a href="{{ url_for('core.user', user_id=player_details['att_white_id']) }}">{{ player_details['def_white_name'] }}</a></td>
+              <td><a href="{{ url_for('core.user', user_id=player_details['def_white_id']) }}">{{ player_details['att_white_name'] }}</a></td>
             </tr>
           </tbody>
       </table>
