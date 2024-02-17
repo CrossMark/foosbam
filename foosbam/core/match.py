@@ -1,123 +1,100 @@
+from datetime import datetime
 from foosbam import db
-from foosbam.models import Match, Result, User
-import pandas as pd
-from sqlalchemy.orm import aliased
+from foosbam.core import routes
+from foosbam.models import Match, Result, Rating
+from typing import Dict, Union
 
-def get_match_and_result_details(match_id):
-    # QUERY
+def get_match_and_result_details(match_id: int) -> Dict[str, Union[int, str]]:
+    """
+    Retrieves details of a specific match and its result from the database.
 
-    # SELECT
-    #   m.played_at,
-    #   ab.id,
-    #   ab.username,
-    #   db.id
-    #   db.username,
-    #   aw.id,
-    #   aw.username,
-    #   dw.id,
-    #   dw.username,
-    #   r.score_black,
-    #   r.score_white,
-    #   r.klinker_att_black,
-    #   r.klinker_att_white,
-    #   r.klinker_def_black,
-    #   r.klinker_def_white,
-    #   r.keeper_black,
-    #   r.keeper_white
-    # FROM matches m
-    # LEFT JOIN results r
-    #   ON m.id = r.match_id
-    # LEFT JOIN user ab
-    #   ON m.att_black = ab.id
-    # LEFT JOIN user db
-    #   ON m.def_black = db.id
-    # LEFT JOIN user aw
-    #   ON m.att_white = aw.id
-    # LEFT JOIN user dw
-    #   ON m.def_white = dw.id
-    # WHERE m.id = match_id
+    Args:
+        match_id (int): The ID of the match to retrieve details for.
 
+    Returns:
+        dict: A dictionary containing details of the match and its result, with the following keys:
+            - 'id' (int): The ID of the match.
+            - 'played_at' (str): The date and time the match was played, in 'YYYY-MM-DD HH:MM' format, 
+                                 converted from UTC to Europe/Amsterdam timezone.
+            - 'score_black' (int): The score of the black team.
+            - 'score_white' (int): The score of the white team.
+            - 'klinker_att_black' (int): The number of klinkers scored by the black attacker.
+            - 'klinker_def_white' (int): The number of klinkers scored by the black defender.
+            - 'klinker_att_white' (int): The number of klinkers scored by the white attacker.
+            - 'klinker_def_white' (int): The number of klinkers scored by the white defender.
+            - 'keeper_black' (str): The number of keeper goals scored by the black team.
+            - 'keeper_white' (str): The number of keeper goals scored by the white team.
+    """
 
-    p_ab = aliased(User)
-    p_db = aliased(User)
-    p_aw = aliased(User)
-    p_dw = aliased(User)
+    try:
+        details = db.session.query(
+            Match.id, 
+            Match.played_at,
+            Result.score_black,
+            Result.score_white,
+            Result.klinker_att_black,
+            Result.klinker_def_black,
+            Result.klinker_att_white,
+            Result.klinker_def_white,
+            Result.keeper_black,
+            Result.keeper_white
+        ).filter(
+            Match.id == match_id
+        ).join(
+            Result,
+            Match.id == Result.id,
+            isouter = True
+        ).one()
 
-    details = db.session.query(
-        Match.id, 
-        Match.played_at,
-        Result.score_black,
-        Result.score_white
-    ).filter(
-        Match.id == match_id
-    ).join(
-        Result,
-        Match.id == Result.id,
-        isouter = True
-    )
-
-    details_dict = dict(
+        match_details = dict(
             zip(
                 [
                     'id',
                     'played_at',
                     'score_black',
-                    'score_white'
+                    'score_white',
+                    'klinker_att_black',
+                    'klinker_def_black',
+                    'klinker_att_white',
+                    'klinker_def_white',
+                    'keeper_black',
+                    'keeper_white'
                 ],
-                details[0],
+                details,
             )
         )
+        
+        match_details['played_at'] = routes.change_timezone(match_details['played_at'], 'Etc/UTC', 'Europe/Amsterdam')
+        match_details['played_at'] = datetime.strftime(match_details['played_at'], '%Y-%m-%d %H:%M')
+        
+        return match_details
+    except Exception as e:
+        raise e
 
-    print(details_dict)
+def get_previous_and_current_rating(user_id : int, match_id : int) ->  Dict[str, int]:
+    try:
+        details = db.session.query(
+            Rating.user_id,
+            Rating.match_id,
+            Rating.previous_rating,
+            Rating.rating
+        ).filter(
+            Rating.user_id == user_id,
+            Rating.match_id == match_id
+        ).one()
 
-    # ranking = db.session.query(
-    #     r1.since,
-    #     User.id,
-    #     User.username,
-    #     r1.rating
-    # ).join(
-    #     r2,
-    #     and_(r1.user_id == r2.user_id,
-    #          r1.since < r2.since
-    #     ),
-    #     isouter = True
-    # ).join(
-    #     User,
-    #     r1.user_id == User.id,
-    #     isouter = True
-    # ).filter(
-    #     r2.user_id.is_(None)
-    # ).order_by(
-    #     r1.rating.desc()
-    # ).order_by(
-    #     r1.since
-    # ).all()
-
-    # ranking_as_dict = [
-    #     dict(
-    #         zip(
-    #             [
-    #                 'since',
-    #                 'user_id',
-    #                 'player',
-    #                 'rating',
-    #             ],
-    #             rank,
-    #         )
-    #     )
-    #     for rank in ranking
-    # ]
-
-    # df = pd.DataFrame.from_records(ranking_as_dict)
-
-    # # Add rank column
-    # df['rank'] = df['rating'].rank(method='min', ascending=False).astype(int)
-
-    # # Change since column to Amsterdam time (for frontend) and in desired format
-    # df['since'] = df['since'].apply(lambda x : routes.change_timezone(x, 'Etc/UTC', 'Europe/Amsterdam'))
-    # df['since'] = df['since'].dt.strftime('%Y-%m-%d %H:%M')
-
-    # # Use the title function on the player names, so they get capitals
-    # df['player'] = df['player'].str.title()
-
-    # return df
+        rating_details = dict(
+            zip(
+                [
+                    'user_id',
+                    'match_id',
+                    'previous_rating',
+                    'rating',
+                ],
+                details,
+            )
+        )
+    
+        return rating_details
+    except Exception as e:
+        raise e
