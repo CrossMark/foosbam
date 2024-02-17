@@ -24,6 +24,9 @@ def get_match_and_result_details(match_id: int) -> Dict[str, Union[int, str]]:
             - 'klinker_def_white' (int): The number of klinkers scored by the white defender.
             - 'keeper_black' (str): The number of keeper goals scored by the black team.
             - 'keeper_white' (str): The number of keeper goals scored by the white team.
+
+    Raises:
+        Exception: If there's an error while querying the database.
     """
 
     try:
@@ -72,6 +75,23 @@ def get_match_and_result_details(match_id: int) -> Dict[str, Union[int, str]]:
         raise e
 
 def get_previous_and_current_rating(user_id : int, match_id : int) ->  Dict[str, int]:
+    """
+    Retrieve the previous and current rating of a user for a specific match.
+
+    Parameters:
+        user_id (int): The ID of the user.
+        match_id (int): The ID of the match.
+
+    Returns:
+        Dict[str, int]: A dictionary containing the following keys:
+            - 'user_id': The ID of the user.
+            - 'match_id': The ID of the match.
+            - 'previous_rating': The user's rating before the match.
+            - 'rating': The user's rating after the match.
+
+    Raises:
+        Exception: If there's an error while querying the database.
+    """
     try:
         details = db.session.query(
             Rating.user_id,
