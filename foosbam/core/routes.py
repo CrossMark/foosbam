@@ -233,8 +233,18 @@ def show_results():
 @bp.route('/match/<match_id>')
 @login_required
 def match(match_id):
-    match = db.first_or_404(sa.select(Match).where(Match.id == match_id))
-    return render_template("core/match.html", match=match)
+    # Get match results
+    match_details = match.get_match_and_result_details(match_id)
+
+    # Get players
+
+    # Get player names
+    player_details = {}
+
+    # Get player ratings
+    rating_details = {}
+
+    return render_template("core/match.html", match_details, player_details, rating_details)
 
 @bp.route('/show_ranking')
 @login_required

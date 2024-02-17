@@ -1,5 +1,29 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Match ID: {{ match.id }}</h1>
+    <h1>{{ match_details['played_at'] }}</h1>
+    <h2>Team Black {{ match_details['score_black'] }} - {{ match_details['score_white'] }} Team White</h2>
+
+    <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>Team Black</th>
+            <th>Team White</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Attacker</td>
+            <td>{{&nbsp;&nbsp;}}</td>
+            <td>{{ }}</td>
+          </tr>
+          <tr>
+            <td>Defender</td>
+            <td>{{ }}</td>
+            <td>{{ }}</td>
+          </tr>
+        </tbody>
+    </table>
+
 {% endblock %}
