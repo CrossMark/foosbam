@@ -237,31 +237,22 @@ def match(match_id):
     match_details = details.get_match_and_result_details(match_id)
 
     # Get players
-    player_details = {
-        'att_black_id' : 1,
-        'def_black_id' : 2,
-        'att_white_id' : 3,
-        'def_white_id' : 4
-    }
+    player_details = details.get_players_from_match(match_id)
 
-    # Get player names
-    player_names = {
-        'att_black_name' : 'Toad',
-        'def_black_name' : 'Bowser',
-        'att_white_name' : 'Mario',
-        'def_white_name' : 'Luigi'
-    }
-
-    player_details = player_details | player_names
-
-    # Get player ratings
-    rating_details = {}
+    # For each player, get name and ratings before and after match
+    for player in player_details:
+        player['name'] = details.get_player_name(player['id']).title()
+        r = details.get_previous_and_current_rating(player['id'], match_id)
+        player['previous_rating'] = r[0]
+        player['current_rating'] = r[1]
 
     return render_template("core/match.html", 
                            match_details=match_details, 
-                           player_details=player_details, 
-                           rating_details=rating_details
-                           )
+                           att_black=player_details[0],
+                           def_black=player_details[1],
+                           att_white=player_details[2],
+                           def_white=player_details[3]
+                        )
 
 @bp.route('/show_ranking')
 @login_required

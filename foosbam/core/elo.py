@@ -15,25 +15,10 @@ from foosbam.models import Match, Rating, Result, User
 import math
 import pandas as pd
 import sqlalchemy as sa
-from sqlalchemy import and_, or_
+from sqlalchemy import and_
 from sqlalchemy.orm import aliased
 
 def get_current_ranking():
-    # QUERY
-    ## SELECT
-    ##  r1.since,
-    ##  u.id,
-    ##  u.username,
-    ##  r1.rating
-    ## FROM ratings AS r1
-    ## LEFT JOIN ratings AS r2
-    ##   ON r1.user = r2.user
-    ##   AND r1.since < r2.since
-    ## LEFT JOIN users AS u
-    ##  ON r1.user_id = u.id
-    ## WHERE r2.user IS NULL
-    ## ORDER BY rating DESC, since ASC;
-
     r1 = aliased(Rating)
     r2 = aliased(Rating)
 
@@ -90,29 +75,15 @@ def get_current_ranking():
     return df
 
 def get_most_recent_rating(user_id):
-    # QUERY
-    ## SELECT * FROM ratings 
-    ## WHERE user_id = form.att_black.data 
-    ## ORDER BY since DESC 
-    ## LIMIT 1
-
     query = sa.select(Rating).where(Rating.user_id == user_id).order_by(Rating.since.desc())
     rating = db.session.scalar(query).rating
     return rating
 
 def get_current_match_count(user_id):
-    # QUERY
-    ## SELECT COUNT(match_id) FROM matches
-    ## WHERE user_id IN (att_black, def_black, att_white, def_white)
     count = Match.query.filter((Match.att_black == user_id) | (Match.def_black == user_id) | (Match.att_white == user_id) | (Match.def_white == user_id)).count()
     return count
 
 def get_match_count_before(user_id, before_timestamp):
-    # QUERY
-    ## SELECT COUNT(match_id) FROM matches
-    ## WHERE user_id IN (att_black, def_black, att_white, def_white)
-    ## AND played_at < before_timestamp
-
     count = Match.query.filter((Match.att_black == user_id) | (Match.def_black == user_id) | (Match.att_white == user_id) | (Match.def_white == user_id)). \
          filter(Match.played_at < before_timestamp). \
          count()

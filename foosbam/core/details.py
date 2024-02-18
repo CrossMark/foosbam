@@ -1,7 +1,7 @@
 from datetime import datetime
 from foosbam import db
 from foosbam.core import routes
-from foosbam.models import Match, Result, Rating
+from foosbam.models import Match, Result, Rating, User
 from typing import Dict, Union
 
 def get_match_and_result_details(match_id: int) -> Dict[str, Union[int, str]]:
@@ -74,47 +74,54 @@ def get_match_and_result_details(match_id: int) -> Dict[str, Union[int, str]]:
     except Exception as e:
         raise e
 
-def get_previous_and_current_rating(user_id : int, match_id : int) ->  Dict[str, int]:
+def get_previous_and_current_rating(user_id : int, match_id : int):
     """
-    Retrieve the previous and current rating of a user for a specific match.
-
-    Parameters:
-        user_id (int): The ID of the user.
-        match_id (int): The ID of the match.
-
-    Returns:
-        Dict[str, int]: A dictionary containing the following keys:
-            - 'user_id': The ID of the user.
-            - 'match_id': The ID of the match.
-            - 'previous_rating': The user's rating before the match.
-            - 'rating': The user's rating after the match.
-
-    Raises:
-        Exception: If there's an error while querying the database.
     """
     try:
         details = db.session.query(
-            Rating.user_id,
-            Rating.match_id,
             Rating.previous_rating,
             Rating.rating
         ).filter(
             Rating.user_id == user_id,
             Rating.match_id == match_id
         ).one()
-
-        rating_details = dict(
-            zip(
-                [
-                    'user_id',
-                    'match_id',
-                    'previous_rating',
-                    'rating',
-                ],
-                details,
-            )
-        )
-    
-        return rating_details
+        return details
     except Exception as e:
         raise e
+
+def get_players_from_match(match_id: int):
+    try:
+        player_ids = db.session.query(
+            Match.att_black,
+            Match.def_black,
+            Match.att_white,
+            Match.def_white
+        ).filter(
+            Match.id == match_id
+        ).one()
+
+        att_black = {'id': player_ids[0]}
+        def_black = {'id': player_ids[1]}
+        att_white = {'id': player_ids[2]}
+        def_white = {'id': player_ids[3]}
+
+
+        return [att_black, def_black, att_white, def_white]
+    
+    except Exception as e:
+        raise e
+
+def get_player_name(user_id : int) ->  str:
+    """
+    """
+    try:
+        name = db.session.query(
+            User.username,
+        ).filter(
+            User.id == user_id,
+        ).one()
+
+        return name[0]  # name is a tuple with 1 element, so only return the actual name
+    except Exception as e:
+        raise e
+    
