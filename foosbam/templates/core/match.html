@@ -60,4 +60,27 @@
       </table>
     </div>
 
+    <div class="table-container">
+      <table class="table">
+        <tbody>
+          <tr>
+            <th>{{ def_black['name'] }}</th>
+            <td>{{ def_black['previous_rating'] }} -> {{ def_black['current_rating'] }}</td>
+          </tr>
+          <tr>
+            <th>{{ att_black['name'] }}</th>
+            <td>{{ att_black['previous_rating'] }} -> {{ att_black['current_rating'] }}</td>
+          </tr>
+          <tr>
+            <th>{{ def_white['name'] }}</th>
+            <td>{{ def_white['previous_rating'] }} -> {{ def_white['current_rating'] }}</td>
+          </tr>
+          <tr>
+            <th>{{ att_white['name'] }}</th>
+            <td>{{ att_white['previous_rating'] }} -> {{ att_white['current_rating'] }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
 {% endblock %}
