@@ -246,12 +246,15 @@ def match(match_id):
         player['previous_rating'] = r[0]
         player['current_rating'] = r[1]
 
+    prediction_details = {'black': '35%', 'white': '65%'}
+
     return render_template("core/match.html", 
                            match_details=match_details, 
                            att_black=player_details[0],
                            def_black=player_details[1],
                            att_white=player_details[2],
-                           def_white=player_details[3]
+                           def_white=player_details[3],
+                           prediction_details=prediction_details
                         )
 
 @bp.route('/show_ranking')

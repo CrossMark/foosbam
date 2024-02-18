@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <section class="hero">
+  <section class="hero is-small">
     <div class="hero-body">
       <p class="title">
         Team Black {{ match_details['score_black'] }} - {{ match_details['score_white'] }} Team White
@@ -12,77 +12,131 @@
   </section>
 
   <section class="section">
-    <h3>Players</h3>
-    <div class="table-container">
-      <table class="table">
-        <thead>
-          <tr>
-            <th></th>
-            <th>Defender</th>
-            <th>Attacker</th>
-          </tr>
-        </thead>
+    <div class="block">
+      <h3 class="title is-5">Predictions before match</h3>
+      <div class="block">
+        <p><strong>Team Black</strong> {{ prediction_details['black'] }} - {{ prediction_details['white'] }} <strong>Team White</strong></p>
+      </div>
+      <div class="block">
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>{{ def_black['name'] }}</th>
+                <th>{{ att_black['name'] }}</th>
+                <th>{{ def_white['name'] }}</th>
+                <th>{{ att_white['name'] }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>{{ def_black['name'] }}</th>
+                <td class="has-text-centered">x</td>
+                <td class="has-text-centered">x</td>
+                <td class="has-text-centered"></td>
+                <td class="has-text-centered"></td>
+              </tr>
+              <tr>
+                <th>{{ att_black['name'] }}</th>
+                <td class="has-text-centered">x</td>
+                <td class="has-text-centered">x</td>
+                <td class="has-text-centered"></td>
+                <td class="has-text-centered"></td>
+              </tr>
+              <tr>
+                <th>{{ def_white['name'] }}</th>
+                <td class="has-text-centered"></td>
+                <td class="has-text-centered"></td>
+                <td class="has-text-centered">x</td>
+                <td class="has-text-centered">x</td>
+              </tr>
+              <tr>
+                <th>{{ att_white['name'] }}</th>
+                <td class="has-text-centered"></td>
+                <td class="has-text-centered"></td>
+                <td class="has-text-centered">x</td>
+                <td class="has-text-centered">x</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3 class="title is-5">Player stats</h3>
+      <div class="table-container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Defender</th>
+              <th>Attacker</th>
+            </tr>
+          </thead>
+            <tbody>
+              <tr>
+                <th>
+                  <p>Team Black</p>
+                  <p><em>Klinkers</em></p>
+                  <p><em>Keeper goals</em></p>
+                </th>
+                <td>
+                  <a href="{{ url_for('core.user', user_id=def_black['id']) }}">{{ def_black['name'] }}</a>
+                  <p class="has-text-right">{{ match_details['klinker_def_black'] }}</p>
+                  <p class="has-text-right">{{ match_details['keeper_black'] }}</p>
+                </td>
+                <td>
+                  <a href="{{ url_for('core.user', user_id=att_black['id']) }}">{{ att_black['name'] }}</a>
+                  <p class="has-text-right">{{ match_details['klinker_att_black'] }}</p>
+                </td>
+              </tr>
+              <tr>
+                <th>
+                  <p>Team White</p>
+                  <p><em>Klinkers</em></p>
+                  <p><em>Keeper goals</em></p>
+                </th>
+                <td>
+                  <a href="{{ url_for('core.user', user_id=def_white['id']) }}">{{ def_white['name'] }}</a>
+                  <p class="has-text-right">{{ match_details['klinker_def_white'] }}</p>
+                  <p class="has-text-right">{{ match_details['keeper_white'] }}</p>
+                </td>
+                <td>
+                  <a href="{{ url_for('core.user', user_id=att_white['id']) }}">{{ att_white['name'] }}</a>
+                  <p class="has-text-right">{{ match_details['klinker_att_white'] }}</p>
+                </td>
+              </tr>
+            </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3 class="title is-5">ELO changes</h3>
+      <div class="table-container">
+        <table class="table">
           <tbody>
             <tr>
-              <th>
-                <p>Team Black</p>
-                <p><i>Klinkers</i></p>
-                <p><i>Keeper goals</i></p>
-              </th>
-              <td>
-                <a href="{{ url_for('core.user', user_id=def_black['id']) }}">{{ def_black['name'] }}</a>
-                <p class="has-text-right">{{ match_details['klinker_def_black'] }}</p>
-                <p class="has-text-right">{{ match_details['keeper_black'] }}</p>
-              </td>
-              <td>
-                <a href="{{ url_for('core.user', user_id=att_black['id']) }}">{{ att_black['name'] }}</a>
-                <p class="has-text-right">{{ match_details['klinker_att_black'] }}</p>
-              </td>
+              <th>{{ def_black['name'] }}</th>
+              <td class="has-text-centered">{{ def_black['previous_rating'] }} -> {{ def_black['current_rating'] }}</td>
             </tr>
             <tr>
-              <th>
-                <p>Team White</p>
-                <p><i>Klinkers</i></p>
-                <p><i>Keeper goals</i></p>
-              </th>
-              <td>
-                <a href="{{ url_for('core.user', user_id=def_white['id']) }}">{{ def_white['name'] }}</a>
-                <p class="has-text-right">{{ match_details['klinker_def_white'] }}</p>
-                <p class="has-text-right">{{ match_details['keeper_white'] }}</p>
-              </td>
-              <td>
-                <a href="{{ url_for('core.user', user_id=att_white['id']) }}">{{ att_white['name'] }}</a>
-                <p class="has-text-right">{{ match_details['klinker_att_white'] }}</p>
-              </td>
+              <th>{{ att_black['name'] }}</th>
+              <td class="has-text-centered">{{ att_black['previous_rating'] }} -> {{ att_black['current_rating'] }}</td>
+            </tr>
+            <tr>
+              <th>{{ def_white['name'] }}</th>
+              <td class="has-text-centered">{{ def_white['previous_rating'] }} -> {{ def_white['current_rating'] }}</td>
+            </tr>
+            <tr>
+              <th>{{ att_white['name'] }}</th>
+              <td class="has-text-centered">{{ att_white['previous_rating'] }} -> {{ att_white['current_rating'] }}</td>
             </tr>
           </tbody>
-      </table>
-    </div>
-  </section>
-
-  <section class="section">
-    <h3>ELO changes</h3>
-    <div class="table-container">
-      <table class="table">
-        <tbody>
-          <tr>
-            <th>{{ def_black['name'] }}</th>
-            <td>{{ def_black['previous_rating'] }} -> {{ def_black['current_rating'] }}</td>
-          </tr>
-          <tr>
-            <th>{{ att_black['name'] }}</th>
-            <td>{{ att_black['previous_rating'] }} -> {{ att_black['current_rating'] }}</td>
-          </tr>
-          <tr>
-            <th>{{ def_white['name'] }}</th>
-            <td>{{ def_white['previous_rating'] }} -> {{ def_white['current_rating'] }}</td>
-          </tr>
-          <tr>
-            <th>{{ att_white['name'] }}</th>
-            <td>{{ att_white['previous_rating'] }} -> {{ att_white['current_rating'] }}</td>
-          </tr>
-        </tbody>
-      </table>
+        </table>
+      </div>
     </div>
   </section>
 
