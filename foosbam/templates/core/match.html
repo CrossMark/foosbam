@@ -27,6 +27,7 @@
                 <th>{{ att_black['name'] }}</th>
                 <th>{{ def_white['name'] }}</th>
                 <th>{{ att_white['name'] }}</th>
+                <th><emp>Average</emp></th>
               </tr>
             </thead>
             <tbody>
@@ -34,27 +35,31 @@
                 <th>{{ def_black['name'] }}</th>
                 <td class="has-text-centered">x</td>
                 <td class="has-text-centered">x</td>
-                <td class="has-text-centered"></td>
-                <td class="has-text-centered"></td>
+                <td class="has-text-centered">{{  prediction_details['db_dw']  }}</td>
+                <td class="has-text-centered">{{  prediction_details['db_aw']  }}</td>
+                <td class="has-text-centered">{{  prediction_details['db']  }}</td>
               </tr>
               <tr>
                 <th>{{ att_black['name'] }}</th>
                 <td class="has-text-centered">x</td>
                 <td class="has-text-centered">x</td>
-                <td class="has-text-centered"></td>
-                <td class="has-text-centered"></td>
+                <td class="has-text-centered">{{  prediction_details['ab_dw']  }}</td>
+                <td class="has-text-centered">{{  prediction_details['ab_aw']  }}</td>
+                <td class="has-text-centered">{{  prediction_details['ab']  }}</td>
               </tr>
               <tr>
                 <th>{{ def_white['name'] }}</th>
-                <td class="has-text-centered"></td>
-                <td class="has-text-centered"></td>
+                <td class="has-text-centered">{{  prediction_details['dw_db']  }}</td>
+                <td class="has-text-centered">{{  prediction_details['dw_ab']  }}</td>
+                <td class="has-text-centered">{{  prediction_details['dw']  }}</td>
                 <td class="has-text-centered">x</td>
                 <td class="has-text-centered">x</td>
               </tr>
               <tr>
                 <th>{{ att_white['name'] }}</th>
-                <td class="has-text-centered"></td>
-                <td class="has-text-centered"></td>
+                <td class="has-text-centered">{{  prediction_details['aw_db']  }}</td>
+                <td class="has-text-centered">{{  prediction_details['aw_ab']  }}</td>
+                <td class="has-text-centered">{{  prediction_details['aw']  }}</td>
                 <td class="has-text-centered">x</td>
                 <td class="has-text-centered">x</td>
               </tr>

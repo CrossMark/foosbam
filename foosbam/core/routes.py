@@ -240,13 +240,10 @@ def match(match_id):
     player_details = details.get_players_from_match(match_id)
 
     # For each player, get name and ratings before and after match
-    for player in player_details:
-        player['name'] = details.get_player_name(player['id']).title()
-        r = details.get_previous_and_current_rating(player['id'], match_id)
-        player['previous_rating'] = r[0]
-        player['current_rating'] = r[1]
+    player_details = details.enrich_player_details(player_details, match_id)
 
-    prediction_details = {'black': '35%', 'white': '65%'}
+    # Get prediction details
+    prediction_details = details.create_prediction_details(player_details)
 
     return render_template("core/match.html", 
                            match_details=match_details, 

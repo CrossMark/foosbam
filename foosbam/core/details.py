@@ -1,6 +1,6 @@
 from datetime import datetime
 from foosbam import db
-from foosbam.core import routes
+from foosbam.core import elo, routes
 from foosbam.models import Match, Result, Rating, User
 from typing import Dict, Union
 
@@ -124,4 +124,34 @@ def get_player_name(user_id : int) ->  str:
         return name[0]  # name is a tuple with 1 element, so only return the actual name
     except Exception as e:
         raise e
-    
+
+def enrich_player_details(player_details, match_id):
+    for player in player_details:
+        player['name'] = get_player_name(player['id']).title()
+        r = get_previous_and_current_rating(player['id'], match_id)
+        player['previous_rating'] = r[0]
+        player['current_rating'] = r[1]
+    return player_details
+
+
+def create_prediction_details(player_details):
+    prediction_details = {
+        'ab_dw' : elo.calculate_expected_player_score(player_details[0]['previous_rating'],player_details[3]['previous_rating']),
+        'ab_aw' : elo.calculate_expected_player_score(player_details[0]['previous_rating'],player_details[2]['previous_rating']),
+        'db_dw' : elo.calculate_expected_player_score(player_details[1]['previous_rating'],player_details[3]['previous_rating']),
+        'db_aw' : elo.calculate_expected_player_score(player_details[1]['previous_rating'],player_details[2]['previous_rating']),
+        'aw_db' : elo.calculate_expected_player_score(player_details[2]['previous_rating'],player_details[1]['previous_rating']),
+        'aw_ab' : elo.calculate_expected_player_score(player_details[2]['previous_rating'],player_details[0]['previous_rating']),
+        'dw_db' : elo.calculate_expected_player_score(player_details[3]['previous_rating'],player_details[1]['previous_rating']),
+        'dw_ab' : elo.calculate_expected_player_score(player_details[3]['previous_rating'],player_details[0]['previous_rating']),
+    }
+
+    prediction_details['ab'] = (prediction_details['ab_dw'] + prediction_details['ab_aw'])/2
+    prediction_details['db'] = (prediction_details['db_dw'] + prediction_details['db_aw'])/2
+    prediction_details['aw'] = (prediction_details['aw_db'] + prediction_details['aw_ab'])/2
+    prediction_details['dw'] = (prediction_details['dw_db'] + prediction_details['dw_ab'])/2
+
+    prediction_details['black'] = (prediction_details['ab'] + prediction_details['db'])/2
+    prediction_details['white'] = (prediction_details['aw'] + prediction_details['dw'])/2
+
+    return prediction_details
