@@ -136,22 +136,22 @@ def enrich_player_details(player_details, match_id):
 
 def create_prediction_details(player_details):
     prediction_details = {
-        'ab_dw' : elo.calculate_expected_player_score(player_details[0]['previous_rating'],player_details[3]['previous_rating']),
-        'ab_aw' : elo.calculate_expected_player_score(player_details[0]['previous_rating'],player_details[2]['previous_rating']),
-        'db_dw' : elo.calculate_expected_player_score(player_details[1]['previous_rating'],player_details[3]['previous_rating']),
-        'db_aw' : elo.calculate_expected_player_score(player_details[1]['previous_rating'],player_details[2]['previous_rating']),
-        'aw_db' : elo.calculate_expected_player_score(player_details[2]['previous_rating'],player_details[1]['previous_rating']),
-        'aw_ab' : elo.calculate_expected_player_score(player_details[2]['previous_rating'],player_details[0]['previous_rating']),
-        'dw_db' : elo.calculate_expected_player_score(player_details[3]['previous_rating'],player_details[1]['previous_rating']),
-        'dw_ab' : elo.calculate_expected_player_score(player_details[3]['previous_rating'],player_details[0]['previous_rating']),
+        'ab_dw' : round(elo.calculate_expected_score(player_details[0]['previous_rating'],player_details[3]['previous_rating']), 2),
+        'ab_aw' : round(elo.calculate_expected_score(player_details[0]['previous_rating'],player_details[2]['previous_rating']), 2),
+        'db_dw' : round(elo.calculate_expected_score(player_details[1]['previous_rating'],player_details[3]['previous_rating']), 2),
+        'db_aw' : round(elo.calculate_expected_score(player_details[1]['previous_rating'],player_details[2]['previous_rating']), 2),
+        'aw_db' : round(elo.calculate_expected_score(player_details[2]['previous_rating'],player_details[1]['previous_rating']), 2),
+        'aw_ab' : round(elo.calculate_expected_score(player_details[2]['previous_rating'],player_details[0]['previous_rating']), 2),
+        'dw_db' : round(elo.calculate_expected_score(player_details[3]['previous_rating'],player_details[1]['previous_rating']), 2),
+        'dw_ab' : round(elo.calculate_expected_score(player_details[3]['previous_rating'],player_details[0]['previous_rating']), 2),
     }
 
-    prediction_details['ab'] = (prediction_details['ab_dw'] + prediction_details['ab_aw'])/2
-    prediction_details['db'] = (prediction_details['db_dw'] + prediction_details['db_aw'])/2
-    prediction_details['aw'] = (prediction_details['aw_db'] + prediction_details['aw_ab'])/2
-    prediction_details['dw'] = (prediction_details['dw_db'] + prediction_details['dw_ab'])/2
+    prediction_details['ab'] = round((prediction_details['ab_dw'] + prediction_details['ab_aw'])/2, 2)
+    prediction_details['db'] = round((prediction_details['db_dw'] + prediction_details['db_aw'])/2, 2)
+    prediction_details['aw'] = round((prediction_details['aw_db'] + prediction_details['aw_ab'])/2, 2)
+    prediction_details['dw'] = round((prediction_details['dw_db'] + prediction_details['dw_ab'])/2, 2)
 
-    prediction_details['black'] = (prediction_details['ab'] + prediction_details['db'])/2
-    prediction_details['white'] = (prediction_details['aw'] + prediction_details['dw'])/2
+    prediction_details['black'] = round((prediction_details['ab'] + prediction_details['db'])/2, 2)
+    prediction_details['white'] = round((prediction_details['aw'] + prediction_details['dw'])/2, 2)
 
     return prediction_details
