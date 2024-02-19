@@ -3,7 +3,7 @@ from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from foosbam import db
 from foosbam.models import Match, Rating, Result, User
-from foosbam.core import bp, elo
+from foosbam.core import bp, elo, details
 from foosbam.core.forms import AddMatchForm, EditProfileForm
 import pandas as pd
 import sqlalchemy as sa
@@ -143,7 +143,15 @@ def add_result():
 
         ## CALCULATE NEW RATINGS
         df_new_rating = elo.calculate_rating(df, form.score_black.data, form.score_white.data)
-        df['rating_obj'] = df_new_rating.apply(lambda x : Rating(user_id=x['user_id'], match_id=match.id, rating=x['new_rating']), axis=1)
+        df['rating_obj'] = df_new_rating.apply(
+            lambda x : Rating(
+                user_id = x['user_id'], 
+                match_id = match.id, 
+                previous_rating = x['rating'],
+                rating = x['new_rating']
+            ), 
+            axis=1
+        )
 
         ## ADD NEW RATINGS TO DB
         db.session.add_all(list(df['rating_obj']))
@@ -163,6 +171,7 @@ def show_results():
     u_def_white = aliased(User)
 
     results = db.session.query(
+        Match.id,
         Match.played_at,
         u_att_black.username.label('att_black'),              
         u_def_black.username.label('def_black'),                
@@ -192,6 +201,7 @@ def show_results():
         dict(
             zip(
                 [
+                    'id',
                     'played_at',
                     'att_black',
                     'def_black',
@@ -219,6 +229,30 @@ def show_results():
         df[col] = df[col].str.title()
     
     return render_template("core/show_results.html", results=df)
+
+@bp.route('/match/<match_id>')
+@login_required
+def match(match_id):
+    # Get match results
+    match_details = details.get_match_and_result_details(match_id)
+
+    # Get players
+    player_details = details.get_players_from_match(match_id)
+
+    # For each player, get name and ratings before and after match
+    player_details = details.enrich_player_details(player_details, match_id)
+
+    # Get prediction details
+    prediction_details = details.create_prediction_details(player_details)
+
+    return render_template("core/match.html", 
+                           match_details=match_details, 
+                           att_black=player_details[0],
+                           def_black=player_details[1],
+                           att_white=player_details[2],
+                           def_white=player_details[3],
+                           prediction_details=prediction_details
+                        )
 
 @bp.route('/show_ranking')
 @login_required

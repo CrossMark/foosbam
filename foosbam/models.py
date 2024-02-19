@@ -77,6 +77,7 @@ class Rating(db.Model):
     user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id), nullable=False)
     match_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Match.id), nullable=True) # nulls allowed for initial ratings
     since: so.Mapped[datetime] = so.mapped_column(sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False, index=True)
+    previous_rating: so.Mapped[int] = so.mapped_column(nullable=True) # nulls allowed for initial ratings
     rating: so.Mapped[int] = so.mapped_column(nullable=False)
 
 class Rating_att(db.Model):
@@ -85,6 +86,7 @@ class Rating_att(db.Model):
     user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id), nullable=False)
     match_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Match.id), nullable=True) # nulls allowed for initial ratings
     since: so.Mapped[datetime] = so.mapped_column(sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False, index=True)
+    previous_rating: so.Mapped[int] = so.mapped_column(nullable=True) # nulls allowed for initial ratings
     rating: so.Mapped[int] = so.mapped_column(nullable=False)
 
 class Rating_def(db.Model):
@@ -93,4 +95,5 @@ class Rating_def(db.Model):
     user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id), nullable=False)
     match_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Match.id), nullable=True) # nulls allowed for initial ratings
     since: so.Mapped[datetime] = so.mapped_column(sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False, index=True)
+    previous_rating: so.Mapped[int] = so.mapped_column(nullable=True) # nulls allowed for initial ratings
     rating: so.Mapped[int] = so.mapped_column(nullable=False)

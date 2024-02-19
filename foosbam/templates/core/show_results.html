@@ -9,10 +9,10 @@
             <thead>
             <tr>
                 <th>Date</th>
-                <th>Black - Attacker</th>
                 <th>Black - Defender</th>
-                <th>White - Attacker</th>
+                <th>Black - Attacker</th>
                 <th>White - Defender</th> 
+                <th>White - Attacker</th>
                 <th>Black - Score</th>
                 <th>White - Score</th>
                 <!-- <th>Status</th> -->
@@ -21,11 +21,13 @@
             <tbody>
             {% for index, row in results.iterrows() %}
             <tr>
-                <th>{{ row['played_at'] }}</th>
-                <td>{{ row['att_black'] }}</td>
+                <th>
+                    <a href="{{ url_for('core.match', match_id=row['id']) }}">{{ row['played_at'] }}</a>
+                </th>
                 <td>{{ row['def_black'] }}</td>
-                <td>{{ row['att_white'] }}</td>
+                <td>{{ row['att_black'] }}</td>
                 <td>{{ row['def_white'] }}</td>
+                <td>{{ row['att_white'] }}</td>
                 <td>{{ row['score_black'] }}</td>
                 <td>{{ row['score_white'] }}</td>
                 <!-- <td>{{ row['status'] }}</td> -->
