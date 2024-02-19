@@ -45,7 +45,7 @@ def get_match_and_result_details(match_id: int) -> Dict[str, Union[int, str]]:
             Match.id == match_id
         ).join(
             Result,
-            Match.id == Result.id,
+            Match.id == Result.match_id,
             isouter = True
         ).one()
 
