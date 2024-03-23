@@ -1,39 +1,38 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Results</h1>
-    <br>
+    <section class="section">
+        <h1 class="title">Results</h1>
 
-    <div class="table-container">
-        <table class="table is-striped is-hoverable">
-            <thead>
-            <tr>
-                <th>Date</th>
-                <th>Black - Defender</th>
-                <th>Black - Attacker</th>
-                <th>White - Defender</th> 
-                <th>White - Attacker</th>
-                <th>Black - Score</th>
-                <th>White - Score</th>
-                <!-- <th>Status</th> -->
-            </tr>
-            </thead>
-            <tbody>
-            {% for index, row in results.iterrows() %}
-            <tr>
-                <th>
-                    <a href="{{ url_for('core.match', match_id=row['id']) }}">{{ row['played_at'] }}</a>
-                </th>
-                <td>{{ row['def_black'] }}</td>
-                <td>{{ row['att_black'] }}</td>
-                <td>{{ row['def_white'] }}</td>
-                <td>{{ row['att_white'] }}</td>
-                <td>{{ row['score_black'] }}</td>
-                <td>{{ row['score_white'] }}</td>
-                <!-- <td>{{ row['status'] }}</td> -->
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
+        <div class="table-container">
+            <table class="table is-striped is-hoverable">
+                <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Black - Defender</th>
+                    <th>Black - Attacker</th>
+                    <th>White - Defender</th> 
+                    <th>White - Attacker</th>
+                    <th>Black - Score</th>
+                    <th>White - Score</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for index, row in results.iterrows() %}
+                <tr>
+                    <th>
+                        <a href="{{ url_for('core.match', match_id=row['id']) }}">{{ row['played_at'] }}</a>
+                    </th>
+                    <td>{{ row['def_black'] }}</td>
+                    <td>{{ row['att_black'] }}</td>
+                    <td>{{ row['def_white'] }}</td>
+                    <td>{{ row['att_white'] }}</td>
+                    <td>{{ row['score_black'] }}</td>
+                    <td>{{ row['score_white'] }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
 {% endblock %}

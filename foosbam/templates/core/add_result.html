@@ -2,7 +2,18 @@
 {% import "macros.html" as m %}
 
 {% block content %}
-    <h1>Add result</h1>
-    <br>
-    {{ m.quick_form(form) }}
+    <section class="section">
+        <h1 class="title">Add result</h1>
+
+        <div class="container">
+            <div class="columns">
+                <div class="column is-3">
+                    <div class="box">
+                        {{ m.quick_form(form) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </section>
 {% endblock %}

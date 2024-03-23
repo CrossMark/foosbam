@@ -2,11 +2,15 @@
 {% import "macros.html" as m %}
 
 {% block content %}
-    <h1>Edit Profile</h1>
-    <br>
-    {{ m.quick_form(form) }}
+    <section class="section">
+        <h1 class="title">Edit Profile</h1>
 
-    <a class="button is-danger", href="{{ url_for('core.user', user_id=current_user.id) }}">
-        Cancel
-    </a>
+        {{ m.quick_form(form) }}
+        <div class="block my-2">
+
+            <a class="button is-danger", href="{{ url_for('core.user', user_id=current_user.id) }}">
+                Cancel
+            </a>
+        </div>
+    </section>
 {% endblock %}
