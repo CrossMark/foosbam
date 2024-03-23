@@ -1,27 +1,29 @@
 {% extends "base.html" %}
 
 {% block content %}
-    {% if current_user.is_anonymous %}
-        <h1>Welcome to Foosbam!</h1>
-        <br>
-
-        With this webapp, you can easily track the results of your foosball games. To start, create an account! You can find a register button in the navigation bar.
+    <section class="section">
+        {% if current_user.is_anonymous %}
+        <h1 class="title">Welcome to Foosbam!</h1>
+        <div class="block">
+            With this webapp, you can easily track the results of your foosball games. To start, create an account! You can find a register button in the navigation bar.
+        </div>
 
     {% else %}
-        <h1>Hi {{ current_user.username.title()  }}, welcome to Foosbam!</h1>
-        <br>
+        <h1 class="title">Hi {{ current_user.username.title()  }}, welcome to Foosbam!</h1>
+        <div class="block">
+            With this webapp, you can easily track the results of your foosball games. Use one of the buttons below to add a new result or show past results.
+        </div>
         
-        Use one of the buttons below to add a new result or show past results.
-
-        <br>
-        
-        <a class="button is-link", href="{{ url_for('core.add_result')  }}">
-            Add result
-        </a>
-
-        <a class="button is-link", href="{{ url_for('core.show_results')  }}">
-            Show results
-        </a>
-
+        <div class="block">
+            <a class="button is-link", href="{{ url_for('core.add_result')  }}">
+                Add result
+            </a>
+            
+            <a class="button is-link", href="{{ url_for('core.show_results')  }}">
+                Show results
+            </a>
+        </div>
     {% endif %}
+
+    </section>
 {% endblock %}
