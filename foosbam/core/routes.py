@@ -218,15 +218,17 @@ def show_results():
     ]
 
     df = pd.DataFrame.from_records(results_as_dict)
-    df = df.sort_values(by='played_at', ascending=False)
 
-    # Change played_at column to Amsterdam time (for frontend) and in desired format
-    df['played_at'] = df['played_at'].apply(lambda x : change_timezone(x, 'Etc/UTC', 'Europe/Amsterdam'))
-    df['played_at'] = df['played_at'].dt.strftime('%Y-%m-%d %H:%M')
+    if len(df) > 0:
+        df = df.sort_values(by='played_at', ascending=False)
 
-    # Use the title function on the player names, so they get capitals
-    for col in ['att_black', 'def_black', 'att_white', 'def_white']:
-        df[col] = df[col].str.title()
+        # Change played_at column to Amsterdam time (for frontend) and in desired format
+        df['played_at'] = df['played_at'].apply(lambda x : change_timezone(x, 'Etc/UTC', 'Europe/Amsterdam'))
+        df['played_at'] = df['played_at'].dt.strftime('%Y-%m-%d %H:%M')
+
+        # Use the title function on the player names, so they get capitals
+        for col in ['att_black', 'def_black', 'att_white', 'def_white']:
+            df[col] = df[col].str.title()
     
     return render_template("core/show_results.html", results=df)
 
@@ -264,7 +266,75 @@ def show_ranking():
 @login_required
 def user(user_id):
     user = db.first_or_404(sa.select(User).where(User.id == user_id))
-    return render_template("core/user.html", user=user)
+
+    u_att_black = aliased(User)
+    u_def_black = aliased(User)
+    u_att_white = aliased(User)
+    u_def_white = aliased(User)
+
+    results = db.session.query(
+        Match.id,
+        Match.played_at,
+        u_att_black.username.label('att_black'),              
+        u_def_black.username.label('def_black'),                
+        u_att_white.username.label('att_white'),              
+        u_def_white.username.label('def_white'),                
+        Result.score_black,     
+        Result.score_white,       
+        Result.status
+    ).join(
+        Match,
+        Result.match_id == Match.id
+    ).join(
+        u_att_black,
+        Match.att_black == u_att_black.id
+    ).join(
+        u_def_black,
+        Match.def_black == u_def_black.id
+    ).join(
+        u_att_white,
+        Match.att_white == u_att_white.id
+    ).join(
+        u_def_white,
+        Match.def_white == u_def_white.id
+    ).filter(
+        (Match.def_white == user_id) | (Match.att_white == user_id) | (Match.def_black == user_id) | (Match.att_black == user_id)
+    ).all()
+
+    results_as_dict = [
+        dict(
+            zip(
+                [
+                    'id',
+                    'played_at',
+                    'att_black',
+                    'def_black',
+                    'att_white',
+                    'def_white',
+                    'score_black',
+                    'score_white',
+                    'status',
+                ],
+                result,
+            )
+        )
+        for result in results
+    ]
+
+    df = pd.DataFrame.from_records(results_as_dict)
+
+    if len(df) > 0:
+        df = df.sort_values(by='played_at', ascending=False)
+
+        # Change played_at column to Amsterdam time (for frontend) and in desired format
+        df['played_at'] = df['played_at'].apply(lambda x : change_timezone(x, 'Etc/UTC', 'Europe/Amsterdam'))
+        df['played_at'] = df['played_at'].dt.strftime('%Y-%m-%d %H:%M')
+
+        # Use the title function on the player names, so they get capitals
+        for col in ['att_black', 'def_black', 'att_white', 'def_white']:
+            df[col] = df[col].str.title()
+    
+    return render_template("core/user.html", user=user, results=df)
 
 @bp.route('/edit_profile', methods=['GET', 'POST'])
 @login_required
