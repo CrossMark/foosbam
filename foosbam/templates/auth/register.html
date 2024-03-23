@@ -2,7 +2,21 @@
 {% import "macros.html" as m %}
 
 {% block content %}
-    <h1>Register new user</h1>
-    {{ m.quick_form(form) }}
-    <p>Already registered? <a href="{{ url_for('auth.login') }}">Click here to sign in!</a></p>
+
+    <section class="section">
+        <div class="container has-text-centered">
+            <div class="columns is-centered">
+                <div class="column is-narrow">
+                    <h1 class="title">
+                        Register
+                    </h1>
+                    <div class="box">
+                        {{ m.quick_form(form) }}
+                    </div>
+                    <p>Already registered? <a href="{{ url_for('auth.login') }}">Click here to sign in!</a></p>
+                </div>
+            </div>
+        </div>
+    </section>
+ 
 {% endblock %}

@@ -66,7 +66,7 @@
         <div class="field">
             <label class="label">{{ field.label }}</label>
             <div class="control">
-                {{  field(class="input", type="number", dir='rtl')  }}
+                {{  field(class="input", type="number")  }}
             </div>
             {% for error in field.errors %}
                 <p class="help is-danger">{{ error }}</p>
