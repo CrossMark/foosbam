@@ -10,7 +10,7 @@
 
 from datetime import datetime
 from foosbam import db
-from foosbam.core import routes
+from foosbam.core import routes, seasons
 from foosbam.models import Match, Rating, Result, User
 import math
 import pandas as pd
@@ -74,16 +74,21 @@ def get_current_ranking():
 
     return df
 
-def get_most_recent_rating(user_id):
-    query = sa.select(Rating).where(Rating.user_id == user_id).order_by(Rating.since.desc())
+def get_most_recent_rating(user_id, season=None):
+    if season is None: # season=None returns most recent rating
+        query = sa.select(Rating).where(Rating.user_id == user_id).order_by(Rating.since.desc())
+    else:
+        query = sa.select(Rating).where(Rating.user_id == user_id).where(Rating.season == season).order_by(Rating.since.desc())
     rating = db.session.scalar(query).rating
     return rating
 
 def get_current_match_count(user_id):
+    # match count is independent of seasons
     count = Match.query.filter((Match.att_black == user_id) | (Match.def_black == user_id) | (Match.att_white == user_id) | (Match.def_white == user_id)).count()
     return count
 
 def get_match_count_before(user_id, before_timestamp):
+    # match count is independent of seasons
     count = Match.query.filter((Match.att_black == user_id) | (Match.def_black == user_id) | (Match.att_white == user_id) | (Match.def_white == user_id)). \
          filter(Match.played_at < before_timestamp). \
          count()
@@ -117,8 +122,11 @@ def construct_dataframe(user_ids, match_id, played_at, score_black, score_white)
             user_id = x['user_id'], 
             match_id = match_id, 
             since = played_at,
+            season = seasons.get_season_from_date(played_at),
             previous_rating = x['rating'], 
-            rating = x['new_rating']
+            rating = x['new_rating'],
+            previous_rating_season = x['rating_season'],
+            rating_season = x['new_rating_season']
         ), 
         axis=1
     )
