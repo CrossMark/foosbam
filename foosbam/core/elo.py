@@ -8,71 +8,12 @@
 # 6) Calculate new ELO rating (for each player)
 # 7) Add rating to table
 
-from datetime import datetime
 from foosbam import db
-from foosbam.core import routes, seasons
-from foosbam.models import Match, Rating, Result, User
+from foosbam.core import seasons
+from foosbam.models import Match, Rating
 import math
 import pandas as pd
 import sqlalchemy as sa
-from sqlalchemy import and_
-from sqlalchemy.orm import aliased
-
-def get_current_ranking():
-    r1 = aliased(Rating)
-    r2 = aliased(Rating)
-
-    ranking = db.session.query(
-        r1.since,
-        User.id,
-        User.username,
-        r1.rating
-    ).join(
-        r2,
-        and_(r1.user_id == r2.user_id,
-             r1.since < r2.since
-        ),
-        isouter = True
-    ).join(
-        User,
-        r1.user_id == User.id,
-        isouter = True
-    ).filter(
-        r2.user_id.is_(None)
-    ).order_by(
-        r1.rating.desc()
-    ).order_by(
-        r1.since
-    ).all()
-
-    ranking_as_dict = [
-        dict(
-            zip(
-                [
-                    'since',
-                    'user_id',
-                    'player',
-                    'rating',
-                ],
-                rank,
-            )
-        )
-        for rank in ranking
-    ]
-
-    df = pd.DataFrame.from_records(ranking_as_dict)
-
-    # Add rank column
-    df['rank'] = df['rating'].rank(method='min', ascending=False).astype(int)
-
-    # Change since column to Amsterdam time (for frontend) and in desired format
-    df['since'] = df['since'].apply(lambda x : routes.change_timezone(x, 'Etc/UTC', 'Europe/Amsterdam'))
-    df['since'] = df['since'].dt.strftime('%Y-%m-%d %H:%M')
-
-    # Use the title function on the player names, so they get capitals
-    df['player'] = df['player'].str.title()
-
-    return df
 
 def get_most_recent_rating(user_id, season=None):
     if season is None: # season=None returns most recent rating
@@ -94,7 +35,7 @@ def get_match_count_before(user_id, before_timestamp):
          count()
     return count
 
-def construct_dataframe(user_ids, match_id, played_at, score_black, score_white):
+def construct_dataframe(user_ids, match_id, played_at, score_black, score_white, season):
     roles = [
         'att_black',
         'def_black',
@@ -109,7 +50,7 @@ def construct_dataframe(user_ids, match_id, played_at, score_black, score_white)
         'white'
     ]
 
-    ratings = [get_most_recent_rating(user_id) for user_id in user_ids]
+    ratings = [get_most_recent_rating(user_id, season) for user_id in user_ids]
 
     counts = [get_match_count_before(user_id, played_at) for user_id in user_ids]
 
@@ -133,9 +74,12 @@ def construct_dataframe(user_ids, match_id, played_at, score_black, score_white)
 
     return df
 
-def get_opponent_ratings(df, row):
+def get_opponent_ratings(df, row, season):
     own_team = row['team']
-    opp_ratings = df[df['team'] != own_team]['rating'].tolist()
+    if season:
+        opp_ratings = df[df['team'] != own_team]['rating_season'].tolist()
+    else:
+        opp_ratings = df[df['team'] != own_team]['rating'].tolist()
     return opp_ratings
 
 def calculate_expected_score(rating_player, rating_opponent):
@@ -169,63 +113,11 @@ def calculate_new_rating(row, point_factor, winner):
     else:
         return int(round(row['rating'] + row['k_factor'] * point_factor  * (0 - row['player_expected']), 0))
     
-def calculate_rating(df, score_black, score_white):
-    df['opp_ratings'] = df.apply(lambda x : get_opponent_ratings(df, x), axis=1)
+def calculate_rating(df, score_black, score_white, season=False):
+    df['opp_ratings'] = df.apply(lambda x : get_opponent_ratings(df, x, season), axis=1)
     df['player_expected'] = df.apply(lambda x : calculate_expected_player_score(x), axis=1)
     df['k_factor'] = df.apply(lambda x : calculate_k_factor(x), axis=1)
     point_factor = calculate_point_factor(score_black, score_white)
     winner = get_winner(score_black, score_white)
     df['new_rating'] = df.apply(lambda x : calculate_new_rating(x, point_factor, winner), axis=1)
     return df
-
-def add_initial_ratings(db):
-    # add inital rating for every user,
-    # but only IF rating does not exist yet for this user
-
-    # get current players
-    players = [p.id for p in User.query]
-
-    ## get players that already have a rating
-    players_with_rating = [p.user_id for p in db.session.query(Rating.user_id).distinct()]
-
-    # get players without rating
-    players_without_rating = [p for p in players if p not in players_with_rating]
-
-    # create initial ratings for every player
-    ratings = [Rating(user_id=pid, rating=1500, since=datetime.strptime('1900-01-01', '%Y-%m-%d')) for pid in players_without_rating]
-
-    # add initial ratings to database
-    db.session.add_all(ratings)
-    db.session.commit()
-
-def create_existing_ratings(db):
-    # loop over all matches already played and add ratings for these matches
-
-    ## get already played matches and results (in order!)
-
-    matches = db.session.query(
-        Match.id,
-        Match.played_at,
-        Match.att_black,              
-        Match.def_black,                
-        Match.att_white,              
-        Match.def_white,                
-        Result.score_black,     
-        Result.score_white,       
-    ).join(
-        Match,
-        Result.match_id == Match.id
-    ).order_by('played_at')
-
-    for match in matches:
-        players = [match.att_black, match.def_black, match.att_white, match.def_white]
-        df = construct_dataframe(players, match.id, match.played_at, match.score_black, match.score_white)
-
-        db.session.add_all(list(df['rating_obj']))
-
-    db.session.commit()
-
-
-def fill_database(db):
-    add_initial_ratings(db)
-    create_existing_ratings(db)
