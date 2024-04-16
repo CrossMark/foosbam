@@ -3,17 +3,12 @@ from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from foosbam import db
 from foosbam.models import Match, Rating, Result, User
-from foosbam.core import bp, elo, details
+from foosbam.core import bp, details, elo, misc
 from foosbam.core.forms import AddMatchForm, EditProfileForm
 import pandas as pd
 import sqlalchemy as sa
 from sqlalchemy.orm import aliased
 from zoneinfo import ZoneInfo
-
-def change_timezone(from_dt, from_timezone, to_timezone):
-    from_dt = from_dt.replace(tzinfo=ZoneInfo(from_timezone))
-    to_dt = from_dt.astimezone(ZoneInfo(to_timezone))
-    return to_dt
 
 @bp.route('/')
 @bp.route('/index')
@@ -38,7 +33,7 @@ def add_result():
         form.keeper_white.data = 0
 
     if form.validate_on_submit():
-        played_at_timestamp = change_timezone(datetime.combine(form.date.data, form.time.data), 'Europe/Amsterdam', 'Etc/UTC')
+        played_at_timestamp = misc.change_timezone(datetime.combine(form.date.data, form.time.data), 'Europe/Amsterdam', 'Etc/UTC')
 
         match = Match(
             played_at=played_at_timestamp, 
@@ -223,7 +218,7 @@ def show_results():
         df = df.sort_values(by='played_at', ascending=False)
 
         # Change played_at column to Amsterdam time (for frontend) and in desired format
-        df['played_at'] = df['played_at'].apply(lambda x : change_timezone(x, 'Etc/UTC', 'Europe/Amsterdam'))
+        df['played_at'] = df['played_at'].apply(lambda x : misc.change_timezone(x, 'Etc/UTC', 'Europe/Amsterdam'))
         df['played_at'] = df['played_at'].dt.strftime('%Y-%m-%d %H:%M')
 
         # Use the title function on the player names, so they get capitals
@@ -327,7 +322,7 @@ def user(user_id):
         df = df.sort_values(by='played_at', ascending=False)
 
         # Change played_at column to Amsterdam time (for frontend) and in desired format
-        df['played_at'] = df['played_at'].apply(lambda x : change_timezone(x, 'Etc/UTC', 'Europe/Amsterdam'))
+        df['played_at'] = df['played_at'].apply(lambda x : misc.change_timezone(x, 'Etc/UTC', 'Europe/Amsterdam'))
         df['played_at'] = df['played_at'].dt.strftime('%Y-%m-%d %H:%M')
 
         # Use the title function on the player names, so they get capitals
