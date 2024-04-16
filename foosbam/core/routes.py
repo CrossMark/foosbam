@@ -3,7 +3,7 @@ from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from foosbam import db
 from foosbam.models import Match, Rating, Result, User
-from foosbam.core import bp, details, elo, misc
+from foosbam.core import bp, details, elo, misc, ranking
 from foosbam.core.forms import AddMatchForm, EditProfileForm
 import pandas as pd
 import sqlalchemy as sa
@@ -254,8 +254,8 @@ def match(match_id):
 @bp.route('/show_ranking')
 @login_required
 def show_ranking():
-    ranking = elo.get_current_ranking()
-    return render_template("core/show_ranking.html", ranking=ranking)
+    r = ranking.get_current_ranking()
+    return render_template("core/show_ranking.html", ranking=r)
 
 @bp.route('/user/<user_id>')
 @login_required
