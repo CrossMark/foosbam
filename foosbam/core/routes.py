@@ -80,10 +80,10 @@ def add_result():
         # SELECT COUNT(match_id) FROM matches
         # WHERE user_id IN (att_black, def_black, att_white, def_white)
 
-        count_att_black = Match.query.filter((Match.att_black == form.att_black.data) | (Match.def_black == form.att_black.data) | (Match.att_white == form.att_black.data) | (Match.def_white == form.att_black.data)).count()
-        count_def_black = Match.query.filter((Match.att_black == form.def_black.data) | (Match.def_black == form.def_black.data) | (Match.att_white == form.def_black.data) | (Match.def_white == form.def_black.data)).count()
-        count_att_white = Match.query.filter((Match.att_black == form.att_white.data) | (Match.def_black == form.att_white.data) | (Match.att_white == form.att_white.data) | (Match.def_white == form.att_white.data)).count()
-        count_def_white = Match.query.filter((Match.att_black == form.def_white.data) | (Match.def_black == form.def_white.data) | (Match.att_white == form.def_white.data) | (Match.def_white == form.def_white.data)).count()
+        count_att_black = elo.get_current_match_count(form.att_black.data)
+        count_def_black = elo.get_current_match_count(form.def_black.data)
+        count_att_white = elo.get_current_match_count(form.att_white.data)
+        count_def_white = elo.get_current_match_count(form.def_white.data)
 
         ## CONSTRUCT DATAFRAME
 

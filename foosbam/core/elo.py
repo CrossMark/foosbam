@@ -26,7 +26,7 @@ def get_most_recent_rating(user_id: int, season: Optional[int] = None) -> int:
         season (Optional[int]): The season to filter ratings by. If None, fetch the most recent rating regardless of season.
 
     Returns:
-        rating (int): The most recent rating.
+        int: The most recent rating.
     """
     if season is None: # season=None returns most recent rating
         query = sa.select(Rating).where(Rating.user_id == user_id).order_by(Rating.since.desc())
@@ -35,9 +35,22 @@ def get_most_recent_rating(user_id: int, season: Optional[int] = None) -> int:
     rating = db.session.scalar(query).rating
     return rating
 
-def get_current_match_count(user_id):
-    # match count is independent of seasons
-    count = Match.query.filter((Match.att_black == user_id) | (Match.def_black == user_id) | (Match.att_white == user_id) | (Match.def_white == user_id)).count()
+def get_current_match_count(user_id: int) -> int:
+    """
+    Retrieve the current match count for a given user. The match count is independent of seasons.
+
+    Args:
+        user_id (int): The ID of the user.
+
+    Returns:
+        int: The count of matches in which the user is involved.
+    """
+    count = Match.query.filter(
+        (Match.att_black == user_id) | 
+        (Match.def_black == user_id) | 
+        (Match.att_white == user_id) | 
+        (Match.def_white == user_id)
+    ).count()
     return count
 
 def get_match_count_before(user_id, before_timestamp):
