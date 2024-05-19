@@ -22,6 +22,7 @@ def add_result():
     players = [(p.id, p.username.title()) for p in User.query.order_by('username')]
     form.att_black.choices = form.def_black.choices = form.att_white.choices = form.def_white.choices = players
 
+    # set default values for form
     if request.method == 'GET':
         form.date.data = datetime.now(ZoneInfo('Europe/Amsterdam')).date()
         form.time.data = datetime.now(ZoneInfo('Europe/Amsterdam')).time()
@@ -67,24 +68,11 @@ def add_result():
         # CALCULATE NEW RATINGS
 
         ## GET CURRENT RATINGS
+        rating_att_black = elo.get_most_recent_rating(form.att_black.data)
+        rating_def_black = elo.get_most_recent_rating(form.def_black.data)
+        rating_att_white = elo.get_most_recent_rating(form.att_white.data) 
+        rating_def_white = elo.get_most_recent_rating(form.def_white.data)
 
-        ### QUERY
-        # SELECT * FROM ratings 
-        # WHERE user_id = form.att_black.data 
-        # ORDER BY since DESC 
-        # LIMIT 1
-
-        query_att_black = sa.select(Rating).where(Rating.user_id == form.att_black.data).order_by(Rating.since.desc())
-        rating_att_black = db.session.scalar(query_att_black).rating
-        
-        query_def_black = sa.select(Rating).where(Rating.user_id == form.def_black.data).order_by(Rating.since.desc())
-        rating_def_black = db.session.scalar(query_def_black).rating
-
-        query_att_white = sa.select(Rating).where(Rating.user_id == form.att_white.data).order_by(Rating.since.desc())
-        rating_att_white = db.session.scalar(query_att_white).rating
-
-        query_def_white = sa.select(Rating).where(Rating.user_id == form.def_white.data).order_by(Rating.since.desc())
-        rating_def_white = db.session.scalar(query_def_white).rating
 
         ## GET TOTAL NUMBER OF GAMES
 

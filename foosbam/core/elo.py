@@ -14,8 +14,20 @@ from foosbam.models import Match, Rating
 import math
 import pandas as pd
 import sqlalchemy as sa
+from typing import Optional
 
-def get_most_recent_rating(user_id, season=None):
+def get_most_recent_rating(user_id: int, season: Optional[int] = None) -> int:
+    """
+    Retrieve the most recent rating for a given user. If a season is specified, 
+    retrieve the most recent rating for that season.
+
+    Args:
+        user_id (int): The ID of the user.
+        season (Optional[int]): The season to filter ratings by. If None, fetch the most recent rating regardless of season.
+
+    Returns:
+        rating (int): The most recent rating.
+    """
     if season is None: # season=None returns most recent rating
         query = sa.select(Rating).where(Rating.user_id == user_id).order_by(Rating.since.desc())
     else:
