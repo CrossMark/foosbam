@@ -22,7 +22,7 @@ def add_result():
     players = [(p.id, p.username.title()) for p in User.query.order_by('username')]
     form.att_black.choices = form.def_black.choices = form.att_white.choices = form.def_white.choices = players
 
-    # set default values for form
+    # Set default values for form
     if request.method == 'GET':
         form.date.data = datetime.now(ZoneInfo('Europe/Amsterdam')).date()
         form.time.data = datetime.now(ZoneInfo('Europe/Amsterdam')).time()
@@ -64,24 +64,9 @@ def add_result():
         db.session.add(result)
         db.session.flush()
 
-
-        # # CALCULATE NEW RATINGS
-
-        # ## GET CURRENT RATINGS
-        # rating_att_black = elo.get_most_recent_rating(form.att_black.data)
-        # rating_def_black = elo.get_most_recent_rating(form.def_black.data)
-        # rating_att_white = elo.get_most_recent_rating(form.att_white.data) 
-        # rating_def_white = elo.get_most_recent_rating(form.def_white.data)
-
-        # ## GET TOTAL NUMBER OF GAMES
-        # count_att_black = elo.get_current_match_count(form.att_black.data)
-        # count_def_black = elo.get_current_match_count(form.def_black.data)
-        # count_att_white = elo.get_current_match_count(form.att_white.data)
-        # count_def_white = elo.get_current_match_count(form.def_white.data)
-
         # Calculate new ratings and add them to database
 
-        # Prepare arguments
+        ## Prepare arguments
         user_ids = [
             form.att_black.data,
             form.def_black.data,
@@ -96,54 +81,9 @@ def add_result():
             score_black = result.score_black, 
             score_white = result.score_white, 
         )
-             
-        # ## CONSTRUCT DATAFRAME
+            
 
-
-
-        # roles = [
-        #     'att_black',
-        #     'def_black',
-        #     'att_white',
-        #     'def_white'
-        # ]
-
-        # teams = [
-        #     'black',
-        #     'black',
-        #     'white',
-        #     'white'
-        # ]
-
-        # ratings = [
-        #     rating_att_black,
-        #     rating_def_black,
-        #     rating_att_white,
-        #     rating_def_white
-        # ]
-
-        # counts = [
-        #     count_att_black,
-        #     count_def_black,
-        #     count_att_white,
-        #     count_def_white
-        # ]
-
-        # df = pd.DataFrame(list(zip(user_ids, roles, teams, ratings, counts)), columns=["user_id", "role", "team", "rating", "num_games"])
-
-        # ## CALCULATE NEW RATINGS
-        # df_new_rating = elo.calculate_rating(df, form.score_black.data, form.score_white.data)
-        # df['rating_obj'] = df_new_rating.apply(
-        #     lambda x : Rating(
-        #         user_id = x['user_id'], 
-        #         match_id = match.id, 
-        #         previous_rating = x['rating'],
-        #         rating = x['new_rating']
-        #     ), 
-        #     axis=1
-        # )
-
-        ## ADD NEW RATINGS TO DB
+        ## Add new ratings to database
         db.session.add_all(list(df['rating_obj']))
         db.session.commit()
         return redirect(url_for('core.index'))
