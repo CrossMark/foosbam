@@ -19,8 +19,8 @@ from typing import Optional
 
 def get_most_recent_rating(user_id: int, season: Optional[int] = None) -> int:
     """
-    Retrieve the most recent rating for a given user. If a season is specified, 
-    retrieve the most recent rating for that season.
+    Retrieve the most recent rating for a given user. 
+    If a season is specified, retrieve the most recent rating for that season. If no rating for that season exists, set it to the default rating (1500).
 
     Args:
         user_id (int): The ID of the user.
@@ -31,9 +31,19 @@ def get_most_recent_rating(user_id: int, season: Optional[int] = None) -> int:
     """
     if season is None: # season=None returns most recent rating
         query = sa.select(Rating).where(Rating.user_id == user_id).order_by(Rating.since.desc())
+        rating = db.session.scalar(query).rating
     else:
         query = sa.select(Rating).where(Rating.user_id == user_id).where(Rating.season == season).order_by(Rating.since.desc())
-    rating = db.session.scalar(query).rating
+
+        try:
+            rating = db.session.scalar(query).rating_season
+        except AttributeError:
+            # It can happen that the season parameter is filled in, but there are no ratings for that season. 
+            # This means this user has not played any games yet in this season and we need the default rating.
+            rating = 1500
+        except Exception as e:
+            raise
+
     return rating
 
 def get_current_match_count(user_id: int) -> int:
@@ -90,10 +100,11 @@ def construct_dataframe(user_ids, match_id, played_at, score_black, score_white)
         'white'
     ]
     season = seasons.get_season_from_date(played_at)
-    ratings = [get_most_recent_rating(user_id, season) for user_id in user_ids]
+    ratings = [get_most_recent_rating(user_id, None) for user_id in user_ids]
+    ratings_season = [get_most_recent_rating(user_id, season) for user_id in user_ids]
     counts = [get_match_count_before(user_id, played_at) for user_id in user_ids]
 
-    df = pd.DataFrame(list(zip(user_ids, roles, teams, ratings, counts)), columns=["user_id", "role", "team", "rating", "num_games"])
+    df = pd.DataFrame(list(zip(user_ids, roles, teams, ratings, ratings_season, counts)), columns=["user_id", "role", "team", "rating", "rating_season", "num_games"])
 
     # CALCULATE NEW RATINGS
     df_new_rating = calculate_rating(df, score_black, score_white)
@@ -125,12 +136,19 @@ def calculate_expected_score(rating_player, rating_opponent):
     prob_player = 1 / (1 + 10 ** ((rating_opponent - rating_player) / 400))
     return prob_player
 
-def calculate_expected_player_score(row):
-    own_rating = row['rating']
-    exp_score = 0
-    for opp_rating in row['opp_ratings']:
-        exp_score = exp_score + calculate_expected_score(own_rating, opp_rating)
-    exp_score = exp_score / 2
+def calculate_expected_player_score(row, season):
+    if season:
+        own_rating = row['rating_season']
+        exp_score = 0
+        for opp_rating in row['opp_ratings_season']:
+            exp_score = exp_score + calculate_expected_score(own_rating, opp_rating)
+        exp_score = exp_score / 2
+    else:
+        own_rating = row['rating']
+        exp_score = 0
+        for opp_rating in row['opp_ratings']:
+            exp_score = exp_score + calculate_expected_score(own_rating, opp_rating)
+        exp_score = exp_score / 2
     return exp_score
 
 def calculate_k_factor(row):
@@ -146,17 +164,27 @@ def get_winner(score_black, score_white):
     else:
         return "white"
 
-def calculate_new_rating(row, point_factor, winner):
-    if row['team'] == winner:
-        return int(round(row['rating'] + row['k_factor'] * point_factor  * (1 - row['player_expected']), 0))
+def calculate_new_rating(row, point_factor, winner, season):
+    if season:
+        if row['team'] == winner:
+            return int(round(row['rating_season'] + row['k_factor'] * point_factor  * (1 - row['player_expected_season']), 0))
+        else:
+            return int(round(row['rating_season'] + row['k_factor'] * point_factor  * (0 - row['player_expected_season']), 0))        
     else:
-        return int(round(row['rating'] + row['k_factor'] * point_factor  * (0 - row['player_expected']), 0))
+        if row['team'] == winner:
+            return int(round(row['rating'] + row['k_factor'] * point_factor  * (1 - row['player_expected']), 0))
+        else:
+            return int(round(row['rating'] + row['k_factor'] * point_factor  * (0 - row['player_expected']), 0))
     
-def calculate_rating(df, score_black, score_white, season=False):
-    df['opp_ratings'] = df.apply(lambda x : get_opponent_ratings(df, x, season), axis=1)
-    df['player_expected'] = df.apply(lambda x : calculate_expected_player_score(x), axis=1)
+def calculate_rating(df, score_black, score_white):
+    df['opp_ratings'] = df.apply(lambda x : get_opponent_ratings(df, x, False), axis=1)
+    df['player_expected'] = df.apply(lambda x : calculate_expected_player_score(x, False), axis=1)
     df['k_factor'] = df.apply(lambda x : calculate_k_factor(x), axis=1)
     point_factor = calculate_point_factor(score_black, score_white)
     winner = get_winner(score_black, score_white)
-    df['new_rating'] = df.apply(lambda x : calculate_new_rating(x, point_factor, winner), axis=1)
+    df['new_rating'] = df.apply(lambda x : calculate_new_rating(x, point_factor, winner, False), axis=1)
+
+    df['opp_ratings_season'] = df.apply(lambda x : get_opponent_ratings(df, x, True), axis=1)
+    df['player_expected_season'] = df.apply(lambda x : calculate_expected_player_score(x, True), axis=1)
+    df['new_rating_season'] = df.apply(lambda x : calculate_new_rating(x, point_factor, winner, True), axis=1)
     return df

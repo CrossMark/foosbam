@@ -96,9 +96,7 @@ def add_result():
             score_black = result.score_black, 
             score_white = result.score_white, 
         )
-        
-        
-        
+             
         # ## CONSTRUCT DATAFRAME
 
 
