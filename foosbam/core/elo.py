@@ -8,6 +8,7 @@
 # 6) Calculate new ELO rating (for each player)
 # 7) Add rating to table
 
+from datetime import datetime
 from foosbam import db
 from foosbam.core import seasons
 from foosbam.models import Match, Rating
@@ -37,10 +38,10 @@ def get_most_recent_rating(user_id: int, season: Optional[int] = None) -> int:
 
 def get_current_match_count(user_id: int) -> int:
     """
-    Retrieve the current match count for a given user. The match count is independent of seasons.
+    Retrieve the current (total) match count for a given user. The match count is independent of seasons.
 
     Args:
-        user_id (int): The ID of the user.
+        user_id (int): The ID of the user whose matches are being counted.
 
     Returns:
         int: The count of matches in which the user is involved.
@@ -53,30 +54,43 @@ def get_current_match_count(user_id: int) -> int:
     ).count()
     return count
 
-def get_match_count_before(user_id, before_timestamp):
-    # match count is independent of seasons
-    count = Match.query.filter((Match.att_black == user_id) | (Match.def_black == user_id) | (Match.att_white == user_id) | (Match.def_white == user_id)). \
-         filter(Match.played_at < before_timestamp). \
-         count()
+def get_match_count_before(user_id: int, before_timestamp: datetime) -> int:
+    """
+    Retrieve the match count for a given user, that were played before a given timestamp. The match count is independent of seasons.
+
+    Args:
+        user_id (int): The ID of the user whose matches are being counted.
+        before_timestamp (datetime): The timestamp before which the matches were played. 
+
+    Returns:
+        int: The number of matches involving the user before the specified timestamp.
+    """
+    count = Match.query.filter(
+        (Match.att_black == user_id) | 
+        (Match.def_black == user_id) | 
+        (Match.att_white == user_id) | 
+        (Match.def_white == user_id)
+    ).filter(
+        Match.played_at < before_timestamp
+    ).count()
     return count
 
-def construct_dataframe(user_ids, match_id, played_at, score_black, score_white, season):
+def construct_dataframe(user_ids, match_id, played_at, score_black, score_white):
+    # Prepare arguments
     roles = [
         'att_black',
         'def_black',
         'att_white',
         'def_white'
     ]
-
     teams = [
         'black',
         'black',
         'white',
         'white'
     ]
-
+    season = seasons.get_season_from_date(played_at)
     ratings = [get_most_recent_rating(user_id, season) for user_id in user_ids]
-
     counts = [get_match_count_before(user_id, played_at) for user_id in user_ids]
 
     df = pd.DataFrame(list(zip(user_ids, roles, teams, ratings, counts)), columns=["user_id", "role", "team", "rating", "num_games"])
@@ -88,7 +102,7 @@ def construct_dataframe(user_ids, match_id, played_at, score_black, score_white,
             user_id = x['user_id'], 
             match_id = match_id, 
             since = played_at,
-            season = seasons.get_season_from_date(played_at),
+            season = season,
             previous_rating = x['rating'], 
             rating = x['new_rating'],
             previous_rating_season = x['rating_season'],
