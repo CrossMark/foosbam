@@ -191,6 +191,12 @@ def show_ranking():
     r = ranking.get_current_ranking()
     return render_template("core/show_ranking.html", ranking=r)
 
+@bp.route('/show_season_ranking/<season>')
+@login_required
+def show_season_ranking(season):
+    r = ranking.get_season_ranking(season)
+    return render_template("core/show_season_ranking.html", season=season, ranking=r)
+
 @bp.route('/user/<user_id>')
 @login_required
 def user(user_id):

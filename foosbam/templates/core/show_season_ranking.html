@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <section class="section">
+        <h1 class="title">Ranking for season {{ season }}</h1>
+
+        <div class="table-container">
+            <table class="table is-striped is-hoverable">
+                <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Player</th>
+                    <th>Rating</th>
+                    <th>Since</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for index, row in ranking.iterrows() %}
+                <tr>
+                    <th>{{ row['rank'] }}</th>
+                    <td>
+                        <a href="{{ url_for('core.user', user_id=row['user_id']) }}">{{ row['player'] }}</a>
+                    </td>
+                    <td>{{ row['rating'] }}</td>
+                    <td>{{ row['since'] }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+{% endblock %}

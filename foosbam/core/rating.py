@@ -1,5 +1,5 @@
 from datetime import datetime
-from foosbam.core import elo
+from foosbam.core import elo, seasons
 from foosbam.models import Match, Rating, Result, User 
 
 
@@ -17,7 +17,8 @@ def add_initial_ratings(db):
     players_without_rating = [p for p in players if p not in players_with_rating]
 
     # create initial ratings for every player
-    ratings = [Rating(user_id=pid, rating=1500, since=datetime.strptime('1900-01-01', '%Y-%m-%d')) for pid in players_without_rating]
+    since_date = datetime.strptime('1900-01-01', '%Y-%m-%d')
+    ratings = [Rating(user_id=pid, rating=1500, since=since_date, season=0, rating_season=1500) for pid in players_without_rating]
 
     # add initial ratings to database
     db.session.add_all(ratings)
