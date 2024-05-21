@@ -3,7 +3,7 @@ from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from foosbam import db
 from foosbam.models import Match, Result, User
-from foosbam.core import bp, details, elo, misc, ranking
+from foosbam.core import bp, details, elo, misc, ranking, seasons
 from foosbam.core.forms import AddMatchForm, EditProfileForm
 import pandas as pd
 import sqlalchemy as sa
@@ -191,11 +191,21 @@ def show_ranking():
     r = ranking.get_current_ranking()
     return render_template("core/show_ranking.html", ranking=r)
 
+@bp.route('/show_season')
+@login_required
+def show_season():
+    season = seasons.get_season_from_date(datetime.today())
+    print(season)
+    return redirect(url_for('core.show_season_ranking', season=season))
+
 @bp.route('/show_season_ranking/<season>')
 @login_required
 def show_season_ranking(season):
+    season = int(season)
     r = ranking.get_season_ranking(season)
-    return render_template("core/show_season_ranking.html", season=season, ranking=r)
+    season_dates = seasons.get_dates_from_season(season)
+    print(season_dates)
+    return render_template("core/show_season_ranking.html", season=season, season_dates=season_dates, ranking=r)
 
 @bp.route('/user/<user_id>')
 @login_required

@@ -2,7 +2,8 @@
 
 {% block content %}
     <section class="section">
-        <h1 class="title">Ranking for season {{ season }}</h1>
+        <h1 class="title">Season {{ season }} ranking</h1>
+        <h2 class="subtitle">{{ season_dates[0] }} - {{ season_dates[1] }}</h2>
 
         {% if ranking|length > 0 %}
 
