@@ -4,6 +4,8 @@
     <section class="section">
         <h1 class="title">Ranking for season {{ season }}</h1>
 
+        {% if ranking|length > 0 %}
+
         <div class="table-container">
             <table class="table is-striped is-hoverable">
                 <thead>
@@ -28,5 +30,12 @@
                 </tbody>
             </table>
         </div>
+        {% else %}
+        <div>
+            <p class="block">
+                No valid ranking could be found for this season! Note that one needs at least 5 games to be included in the ranking.
+            </p>
+        </div>
+        {% endif %}
     </section>
 {% endblock %}
