@@ -1,6 +1,6 @@
 from datetime import datetime
 from foosbam import db
-from foosbam.core import elo, routes
+from foosbam.core import elo, misc
 from foosbam.models import Match, Result, Rating, User
 from typing import Dict, Union
 
@@ -67,7 +67,7 @@ def get_match_and_result_details(match_id: int) -> Dict[str, Union[int, str]]:
             )
         )
         
-        match_details['played_at'] = routes.change_timezone(match_details['played_at'], 'Etc/UTC', 'Europe/Amsterdam')
+        match_details['played_at'] = misc.change_timezone(match_details['played_at'], 'Etc/UTC', 'Europe/Amsterdam')
         match_details['played_at'] = datetime.strftime(match_details['played_at'], '%Y-%m-%d %H:%M')
         
         return match_details
