@@ -2,7 +2,10 @@
 
 {% block content %}
     <section class="section">
-        <h1 class="title">All-time ranking</h1>
+        <h1 class="title">Season {{ season }} ranking</h1>
+        <h2 class="subtitle">{{ season_dates[0] }} - {{ season_dates[1] }}</h2>
+
+        {% if ranking|length > 0 %}
 
         <div class="table-container">
             <table class="table is-striped is-hoverable">
@@ -28,5 +31,12 @@
                 </tbody>
             </table>
         </div>
+        {% else %}
+        <div>
+            <p class="block">
+                No valid ranking could be found for this season! Note that one needs at least 5 games to be included in the ranking.
+            </p>
+        </div>
+        {% endif %}
     </section>
 {% endblock %}

@@ -3,10 +3,12 @@ from flask_login import current_user, login_user, logout_user
 from foosbam import db
 from foosbam.auth import bp
 from foosbam.auth.forms import LoginForm, RegistrationForm, ResetPasswordForm, RequestPasswordResetForm
+from foosbam.core import seasons
 from foosbam.email import send_password_reset
-from foosbam.models import User, Rating, Rating_att, Rating_def
+from foosbam.models import User, Rating
 import sqlalchemy as sa
 from urllib.parse import urlsplit
+from datetime import datetime
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -59,12 +61,8 @@ def register():
         db.session.flush()
 
         # add initial rating for new user to ratings table
-        rating = Rating(user_id=user.id, rating=1500)
-        rating_att = Rating_att(user_id=user.id, rating=1500)
-        rating_def = Rating_def(user_id=user.id, rating=1500)
+        rating = Rating(user_id=user.id, rating=1500, season=seasons.get_season_from_date(datetime.today()), rating_season=1500)
         db.session.add(rating)
-        db.session.add(rating_att)
-        db.session.add(rating_def)
         db.session.commit()
 
         flash(f"Have fun with Foosbam, {user.username.title()}!", "is-success")

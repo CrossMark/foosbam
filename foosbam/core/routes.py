@@ -2,18 +2,13 @@ from datetime import datetime
 from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from foosbam import db
-from foosbam.models import Match, Rating, Result, User
-from foosbam.core import bp, elo, details
+from foosbam.models import Match, Result, User
+from foosbam.core import bp, details, elo, misc, ranking, seasons
 from foosbam.core.forms import AddMatchForm, EditProfileForm
 import pandas as pd
 import sqlalchemy as sa
 from sqlalchemy.orm import aliased
 from zoneinfo import ZoneInfo
-
-def change_timezone(from_dt, from_timezone, to_timezone):
-    from_dt = from_dt.replace(tzinfo=ZoneInfo(from_timezone))
-    to_dt = from_dt.astimezone(ZoneInfo(to_timezone))
-    return to_dt
 
 @bp.route('/')
 @bp.route('/index')
@@ -27,6 +22,7 @@ def add_result():
     players = [(p.id, p.username.title()) for p in User.query.order_by('username')]
     form.att_black.choices = form.def_black.choices = form.att_white.choices = form.def_white.choices = players
 
+    # Set default values for form
     if request.method == 'GET':
         form.date.data = datetime.now(ZoneInfo('Europe/Amsterdam')).date()
         form.time.data = datetime.now(ZoneInfo('Europe/Amsterdam')).time()
@@ -38,8 +34,9 @@ def add_result():
         form.keeper_white.data = 0
 
     if form.validate_on_submit():
-        played_at_timestamp = change_timezone(datetime.combine(form.date.data, form.time.data), 'Europe/Amsterdam', 'Etc/UTC')
+        played_at_timestamp = misc.change_timezone(datetime.combine(form.date.data, form.time.data), 'Europe/Amsterdam', 'Etc/UTC')
 
+        # Add match to database
         match = Match(
             played_at=played_at_timestamp, 
             att_black=form.att_black.data, 
@@ -47,10 +44,10 @@ def add_result():
             att_white=form.att_white.data, 
             def_white=form.def_white.data
         )
-
         db.session.add(match)
         db.session.flush()
 
+        # Add result to database
         result = Result(
             match_id = match.id,
             created_by = current_user.id,
@@ -64,98 +61,30 @@ def add_result():
             keeper_black = form.keeper_black.data,
             keeper_white = form.keeper_white.data
         )
-
         db.session.add(result)
         db.session.flush()
 
+        # Calculate new ratings and add them to database
 
-        # CALCULATE NEW RATINGS
-
-        ## GET CURRENT RATINGS
-
-        ### QUERY
-        # SELECT * FROM ratings 
-        # WHERE user_id = form.att_black.data 
-        # ORDER BY since DESC 
-        # LIMIT 1
-
-        query_att_black = sa.select(Rating).where(Rating.user_id == form.att_black.data).order_by(Rating.since.desc())
-        rating_att_black = db.session.scalar(query_att_black).rating
-        
-        query_def_black = sa.select(Rating).where(Rating.user_id == form.def_black.data).order_by(Rating.since.desc())
-        rating_def_black = db.session.scalar(query_def_black).rating
-
-        query_att_white = sa.select(Rating).where(Rating.user_id == form.att_white.data).order_by(Rating.since.desc())
-        rating_att_white = db.session.scalar(query_att_white).rating
-
-        query_def_white = sa.select(Rating).where(Rating.user_id == form.def_white.data).order_by(Rating.since.desc())
-        rating_def_white = db.session.scalar(query_def_white).rating
-
-        ## GET TOTAL NUMBER OF GAMES
-
-        ### QUERY
-        # SELECT COUNT(match_id) FROM matches
-        # WHERE user_id IN (att_black, def_black, att_white, def_white)
-
-        count_att_black = Match.query.filter((Match.att_black == form.att_black.data) | (Match.def_black == form.att_black.data) | (Match.att_white == form.att_black.data) | (Match.def_white == form.att_black.data)).count()
-        count_def_black = Match.query.filter((Match.att_black == form.def_black.data) | (Match.def_black == form.def_black.data) | (Match.att_white == form.def_black.data) | (Match.def_white == form.def_black.data)).count()
-        count_att_white = Match.query.filter((Match.att_black == form.att_white.data) | (Match.def_black == form.att_white.data) | (Match.att_white == form.att_white.data) | (Match.def_white == form.att_white.data)).count()
-        count_def_white = Match.query.filter((Match.att_black == form.def_white.data) | (Match.def_black == form.def_white.data) | (Match.att_white == form.def_white.data) | (Match.def_white == form.def_white.data)).count()
-
-        ## CONSTRUCT DATAFRAME
-
+        ## Prepare arguments
         user_ids = [
             form.att_black.data,
             form.def_black.data,
             form.att_white.data,
             form.def_white.data
-        ]
-
-        roles = [
-            'att_black',
-            'def_black',
-            'att_white',
-            'def_white'
-        ]
-
-        teams = [
-            'black',
-            'black',
-            'white',
-            'white'
-        ]
-
-        ratings = [
-            rating_att_black,
-            rating_def_black,
-            rating_att_white,
-            rating_def_white
-        ]
-
-        counts = [
-            count_att_black,
-            count_def_black,
-            count_att_white,
-            count_def_white
-        ]
-
-        df = pd.DataFrame(list(zip(user_ids, roles, teams, ratings, counts)), columns=["user_id", "role", "team", "rating", "num_games"])
-
-        ## CALCULATE NEW RATINGS
-        df_new_rating = elo.calculate_rating(df, form.score_black.data, form.score_white.data)
-        df['rating_obj'] = df_new_rating.apply(
-            lambda x : Rating(
-                user_id = x['user_id'], 
-                match_id = match.id, 
-                previous_rating = x['rating'],
-                rating = x['new_rating']
-            ), 
-            axis=1
+        ]     
+        
+        df = elo.construct_dataframe(
+            user_ids = user_ids, 
+            match_id = match.id, 
+            played_at = match.played_at, 
+            score_black = result.score_black, 
+            score_white = result.score_white, 
         )
+            
 
-        ## ADD NEW RATINGS TO DB
+        ## Add new ratings to database
         db.session.add_all(list(df['rating_obj']))
-
         db.session.commit()
         return redirect(url_for('core.index'))
 
@@ -223,7 +152,7 @@ def show_results():
         df = df.sort_values(by='played_at', ascending=False)
 
         # Change played_at column to Amsterdam time (for frontend) and in desired format
-        df['played_at'] = df['played_at'].apply(lambda x : change_timezone(x, 'Etc/UTC', 'Europe/Amsterdam'))
+        df['played_at'] = df['played_at'].apply(lambda x : misc.change_timezone(x, 'Etc/UTC', 'Europe/Amsterdam'))
         df['played_at'] = df['played_at'].dt.strftime('%Y-%m-%d %H:%M')
 
         # Use the title function on the player names, so they get capitals
@@ -259,8 +188,22 @@ def match(match_id):
 @bp.route('/show_ranking')
 @login_required
 def show_ranking():
-    ranking = elo.get_current_ranking()
-    return render_template("core/show_ranking.html", ranking=ranking)
+    r = ranking.get_current_ranking()
+    return render_template("core/show_ranking.html", ranking=r)
+
+@bp.route('/show_season')
+@login_required
+def show_season():
+    season = seasons.get_season_from_date(datetime.today())
+    return redirect(url_for('core.show_season_ranking', season=season))
+
+@bp.route('/show_season_ranking/<season>')
+@login_required
+def show_season_ranking(season):
+    season = int(season)
+    r = ranking.get_season_ranking(season)
+    season_dates = seasons.get_dates_from_season(season)
+    return render_template("core/show_season_ranking.html", season=season, season_dates=season_dates, ranking=r)
 
 @bp.route('/user/<user_id>')
 @login_required
@@ -327,7 +270,7 @@ def user(user_id):
         df = df.sort_values(by='played_at', ascending=False)
 
         # Change played_at column to Amsterdam time (for frontend) and in desired format
-        df['played_at'] = df['played_at'].apply(lambda x : change_timezone(x, 'Etc/UTC', 'Europe/Amsterdam'))
+        df['played_at'] = df['played_at'].apply(lambda x : misc.change_timezone(x, 'Etc/UTC', 'Europe/Amsterdam'))
         df['played_at'] = df['played_at'].dt.strftime('%Y-%m-%d %H:%M')
 
         # Use the title function on the player names, so they get capitals
