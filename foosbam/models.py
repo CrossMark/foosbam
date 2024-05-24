@@ -47,8 +47,8 @@ class User(UserMixin, db.Model):
 class Match(db.Model):
     __tablename__ = 'matches'
     id: so.Mapped[int] = so.mapped_column(primary_key=True, autoincrement=True)
-    played_at: so.Mapped[datetime] = so.mapped_column(sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False, index=True)
-    season: so.Mapped[int] = so.mapped_column(nullable=True) # temp nullable
+    played_at: so.Mapped[datetime] = so.mapped_column(sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False, index=True, unique=True)
+    season: so.Mapped[int] = so.mapped_column(nullable=False)
     att_black: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id), nullable=False)
     att_white: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id), nullable=False)
     def_black: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id), nullable=False)
@@ -78,7 +78,7 @@ class Rating(db.Model):
     user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id), nullable=False)
     match_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Match.id), nullable=True) # nulls allowed for initial ratings
     since: so.Mapped[datetime] = so.mapped_column(sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False, index=True)
-    season: so.Mapped[int] = so.mapped_column(nullable=True) # temp nullable
+    season: so.Mapped[int] = so.mapped_column(nullable=False)
     previous_rating: so.Mapped[int] = so.mapped_column(nullable=True) # nulls allowed for initial ratings
     rating: so.Mapped[int] = so.mapped_column(nullable=False)
     previous_rating_season: so.Mapped[int] = so.mapped_column(nullable=True) # nulls allowed for initial ratings (at start of each season)

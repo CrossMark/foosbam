@@ -1,7 +1,9 @@
+from datetime import datetime
 from flask_login import current_user
 from flask_wtf import FlaskForm
 from foosbam import db
-from foosbam.models import User
+from foosbam.core import misc
+from foosbam.models import Match, User
 import sqlalchemy as sa
 from wtforms import DateField, IntegerField, SelectField, SubmitField, StringField, TimeField
 from wtforms.validators import InputRequired, Email, ValidationError
@@ -31,6 +33,14 @@ class AddMatchForm(FlaskForm):
         if not super().validate():
             return False
         
+        # Check for unique timestamp (1 foosball table, so no games can be played simultaneously)
+        played_at_timestamp = misc.change_timezone(datetime.combine(self.date.data, self.time.data), 'Europe/Amsterdam', 'Etc/UTC')
+        if db.session.scalar(sa.select(Match).where(Match.played_at == played_at_timestamp)) is not None:
+            self.date.errors.append('There already is a game with this date and time. Please set a correct date/time.')
+            self.time.errors.append('There already is a game with this date and time. Please set a correct date/time.')
+            return False
+
+        # Check for four unique players
         seen = set()
         for player in [self.att_black, self.def_black, self.att_white, self.def_white]:
             if player.data in seen:
