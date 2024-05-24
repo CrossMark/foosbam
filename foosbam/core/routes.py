@@ -38,7 +38,8 @@ def add_result():
 
         # Add match to database
         match = Match(
-            played_at=played_at_timestamp, 
+            played_at=played_at_timestamp,
+            season=seasons.get_season_from_date(played_at_timestamp), 
             att_black=form.att_black.data, 
             def_black=form.def_black.data, 
             att_white=form.att_white.data, 
