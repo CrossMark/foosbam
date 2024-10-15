@@ -9,11 +9,24 @@ def get_current_ranking():
     r1 = aliased(Rating)
     r2 = aliased(Rating)
 
+    # In this subquery we count the number of matches for a user.
+    match_count = db.session.query(
+        r1.user_id,
+        func.count(r1.match_id).label('match_count')
+    ).group_by(
+        r1.user_id
+    ).subquery()
+
     ranking = db.session.query(
         r1.since,
         User.id,
         User.username,
         r1.rating
+    ).join(
+        match_count,
+        and_(r1.user_id == match_count.c.user_id,
+             match_count.c.match_count >= 5           # only include ratings for players with a match count of 5 and higher
+            ),
     ).join(
         r2,
         and_(r1.user_id == r2.user_id,
