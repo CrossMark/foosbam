@@ -2,7 +2,6 @@ from datetime import datetime
 from foosbam.core import elo
 from foosbam.models import Match, Rating, Result, User 
 
-
 def add_initial_ratings(db):
     # add inital rating for every user,
     # but only IF rating does not exist yet for this user
