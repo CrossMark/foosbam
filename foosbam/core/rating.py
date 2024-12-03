@@ -1,5 +1,5 @@
 from datetime import datetime
-from foosbam.core import elo, seasons
+from foosbam.core import elo
 from foosbam.models import Match, Rating, Result, User 
 
 
