@@ -151,6 +151,15 @@ def calculate_expected_player_score(row, season):
         exp_score = exp_score / 2
     return exp_score
 
+def calculate_expected_team_score(df, season):
+    '''Calculate average value per team and add it as a new column to the input dataframe'''
+    if season:
+        df['team_expected_season'] = df.groupby('team')['player_expected_season'].transform('mean')
+    else:
+        df['team_expected'] = df.groupby('team')['player_expected'].transform('mean')
+    return df
+
+
 def calculate_k_factor(row):
     return 50 / (1 + row['num_games'] / 300)
 
@@ -167,24 +176,27 @@ def get_winner(score_black, score_white):
 def calculate_new_rating(row, point_factor, winner, season):
     if season:
         if row['team'] == winner:
-            return int(round(row['rating_season'] + row['k_factor'] * point_factor  * (1 - row['player_expected_season']), 0))
+            return int(round(row['rating_season'] + row['k_factor'] * point_factor  * (1 - row['team_expected_season']), 0))
         else:
-            return int(round(row['rating_season'] + row['k_factor'] * point_factor  * (0 - row['player_expected_season']), 0))        
+            return int(round(row['rating_season'] + row['k_factor'] * point_factor  * (0 - row['team_expected_season']), 0))        
     else:
         if row['team'] == winner:
-            return int(round(row['rating'] + row['k_factor'] * point_factor  * (1 - row['player_expected']), 0))
+            return int(round(row['rating'] + row['k_factor'] * point_factor  * (1 - row['team_expected']), 0))
         else:
-            return int(round(row['rating'] + row['k_factor'] * point_factor  * (0 - row['player_expected']), 0))
+            return int(round(row['rating'] + row['k_factor'] * point_factor  * (0 - row['team_expected']), 0))
     
 def calculate_rating(df, score_black, score_white):
-    df['opp_ratings'] = df.apply(lambda x : get_opponent_ratings(df, x, False), axis=1)
-    df['player_expected'] = df.apply(lambda x : calculate_expected_player_score(x, False), axis=1)
-    df['k_factor'] = df.apply(lambda x : calculate_k_factor(x), axis=1)
     point_factor = calculate_point_factor(score_black, score_white)
     winner = get_winner(score_black, score_white)
+    df['k_factor'] = df.apply(lambda x : calculate_k_factor(x), axis=1)
+
+    df['opp_ratings'] = df.apply(lambda x : get_opponent_ratings(df, x, False), axis=1)
+    df['player_expected'] = df.apply(lambda x : calculate_expected_player_score(x, False), axis=1)
+    df = calculate_expected_team_score(df, False)
     df['new_rating'] = df.apply(lambda x : calculate_new_rating(x, point_factor, winner, False), axis=1)
 
     df['opp_ratings_season'] = df.apply(lambda x : get_opponent_ratings(df, x, True), axis=1)
     df['player_expected_season'] = df.apply(lambda x : calculate_expected_player_score(x, True), axis=1)
+    df = calculate_expected_team_score(df, True)
     df['new_rating_season'] = df.apply(lambda x : calculate_new_rating(x, point_factor, winner, True), axis=1)
     return df
