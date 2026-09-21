@@ -7,6 +7,7 @@ from foosbam.core import bp, details, elo, misc, ranking, seasons
 from foosbam.core.forms import AddMatchForm, EditProfileForm
 import pandas as pd
 import sqlalchemy as sa
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import aliased
 from zoneinfo import ZoneInfo
 
@@ -36,57 +37,63 @@ def add_result():
     if form.validate_on_submit():
         played_at_timestamp = misc.change_timezone(datetime.combine(form.date.data, form.time.data), 'Europe/Amsterdam', 'Etc/UTC')
 
-        # Add match to database
-        match = Match(
-            played_at=played_at_timestamp,
-            season=seasons.get_season_from_date(played_at_timestamp), 
-            att_black=form.att_black.data, 
-            def_black=form.def_black.data, 
-            att_white=form.att_white.data, 
-            def_white=form.def_white.data
-        )
-        db.session.add(match)
-        db.session.flush()
+        try:
+            # Add match to database
+            match = Match(
+                played_at=played_at_timestamp,
+                season=seasons.get_season_from_date(played_at_timestamp),
+                att_black=form.att_black.data,
+                def_black=form.def_black.data,
+                att_white=form.att_white.data,
+                def_white=form.def_white.data
+            )
+            db.session.add(match)
+            db.session.flush()
 
-        # Add result to database
-        result = Result(
-            match_id = match.id,
-            created_by = current_user.id,
-            status = "Pending",
-            score_black = form.score_black.data,
-            score_white = form.score_white.data,
-            klinker_att_black = form.klinker_att_black.data,
-            klinker_att_white = form.klinker_att_white.data,
-            klinker_def_black = form.klinker_def_black.data,
-            klinker_def_white = form.klinker_def_white.data,
-            keeper_black = form.keeper_black.data,
-            keeper_white = form.keeper_white.data
-        )
-        db.session.add(result)
-        db.session.flush()
+            # Add result to database
+            result = Result(
+                match_id = match.id,
+                created_by = current_user.id,
+                status = "Pending",
+                score_black = form.score_black.data,
+                score_white = form.score_white.data,
+                klinker_att_black = form.klinker_att_black.data,
+                klinker_att_white = form.klinker_att_white.data,
+                klinker_def_black = form.klinker_def_black.data,
+                klinker_def_white = form.klinker_def_white.data,
+                keeper_black = form.keeper_black.data,
+                keeper_white = form.keeper_white.data
+            )
+            db.session.add(result)
+            db.session.flush()
 
-        # Calculate new ratings and add them to database
+            # Calculate new ratings and add them to database
 
-        ## Prepare arguments
-        user_ids = [
-            form.att_black.data,
-            form.def_black.data,
-            form.att_white.data,
-            form.def_white.data
-        ]     
-        
-        df = elo.construct_dataframe(
-            user_ids = user_ids, 
-            match_id = match.id, 
-            played_at = match.played_at, 
-            score_black = result.score_black, 
-            score_white = result.score_white, 
-        )
+            ## Prepare arguments
+            user_ids = [
+                form.att_black.data,
+                form.def_black.data,
+                form.att_white.data,
+                form.def_white.data
+            ]
             
+            df = elo.construct_dataframe(
+                user_ids = user_ids,
+                match_id = match.id,
+                played_at = match.played_at,
+                score_black = result.score_black,
+                score_white = result.score_white,
+            )
 
-        ## Add new ratings to database
-        db.session.add_all(list(df['rating_obj']))
-        db.session.commit()
+
+            ## Add new ratings to database
+            db.session.add_all(list(df['rating_obj']))
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            flash('This result could not be saved because it already exists.', 'is-danger')
+            return render_template("core/add_result.html", form=form)
+
         return redirect(url_for('core.index'))
 
     return render_template("core/add_result.html", form=form)

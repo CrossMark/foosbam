@@ -56,6 +56,9 @@ class Match(db.Model):
 
 class Result(db.Model):
     __tablename__ = 'results'
+    __table_args__ = (
+        sa.UniqueConstraint('match_id', name='uq_results_match'),
+    )
     id: so.Mapped[int] = so.mapped_column(primary_key=True, autoincrement=True)
     match_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Match.id), nullable=False)
     created_at: so.Mapped[datetime] = so.mapped_column(sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False, index=True)
@@ -74,6 +77,9 @@ class Result(db.Model):
 
 class Rating(db.Model):
     __tablename__ = 'ratings'
+    __table_args__ = (
+        sa.UniqueConstraint('user_id', 'match_id', name='uq_ratings_user_match'),
+    )
     id: so.Mapped[int] = so.mapped_column(primary_key=True, autoincrement=True)
     user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id), nullable=False)
     match_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Match.id), nullable=True) # nulls allowed for initial ratings

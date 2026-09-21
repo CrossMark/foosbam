@@ -1,59 +1,62 @@
 Table users {
-  id            integer [primary key]
-  username      varchar
-  email         varchar
-  password_hash varchar
+  id            integer [primary key, increment]
+  username      varchar(64) [not null, unique]
+  email         varchar(256) [not null, unique]
+  password_hash varchar(256) [not null]
 }
 
 Table matches {
-  id          integer [primary key]
-  played_at   timestamp
-  att_black   integer
-  att_white   integer
-  def_black   integer
-  def_white   integer
+  id          integer [primary key, increment]
+  played_at   timestamp [not null, default: `now()`]
+  season      integer [not null]
+  att_black   integer [not null]
+  att_white   integer [not null]
+  def_black   integer [not null]
+  def_white   integer [not null]
+
+  indexes {
+    (played_at) [unique, name: 'ix_matches_played_at']
+  }
 }
 
 Table results {
-  id                integer [primary key]
-  match_id          integer
-  created_at        timestamp
-  created_by        varchar
-  checked_at        timestamp
-  checked_by        varchar
-  status            varchar
-  score_black       integer
-  score_white       integer
-  klinker_att_black integer
-  klinker_att_white integer
-  klinker_def_black integer
-  klinker_def_white integer
-  keeper_black      integer
-  keeper_white      integer
+  id                integer [primary key, increment]
+  match_id          integer [not null]
+  created_at        timestamp [not null, default: `now()`]
+  created_by        integer [not null]
+  checked_at        timestamp [null]
+  checked_by        integer [null]
+  status            varchar(64) [not null]
+  score_black       integer [not null]
+  score_white       integer [not null]
+  klinker_att_black integer [not null]
+  klinker_att_white integer [not null]
+  klinker_def_black integer [not null]
+  klinker_def_white integer [not null]
+  keeper_black      integer [not null]
+  keeper_white      integer [not null]
+
+  indexes {
+    (created_at) [name: 'ix_results_created_at']
+    (match_id) [unique, name: 'uq_results_match']
+  }
 }
 
 Table ratings {
-  id        integer [primary key]
-  user_id   integer
-  match_id  integer
-  since     timestamp
-  rating    integer
-}
+  id                     integer [primary key, increment]
+  user_id                integer [not null]
+  match_id               integer [null]
+  since                  timestamp [not null, default: `now()`]
+  season                 integer [not null]
+  previous_rating        integer [null]
+  rating                 integer [not null]
+  previous_rating_season integer [null]
+  rating_season          integer [null]
 
-Table ratings_def {
-  id        integer [primary key]
-  user_id   integer
-  match_id  integer
-  since     timestamp
-  rating    integer
-}
-
-Table ratings_att {
-  id        integer [primary key]
-  user_id   integer
-  match_id  integer
-  since     timestamp
-  rating    integer
+  indexes {
+    (since) [name: 'ix_ratings_since']
+    (user_id, match_id) [unique, name: 'uq_ratings_user_match']
+  }
 }
 
 Ref: matches.att_black > users.id
@@ -61,15 +64,9 @@ Ref: matches.att_white > users.id
 Ref: matches.def_black > users.id
 Ref: matches.def_white > users.id
 
-Ref: results.match_id > matches.id
+Ref: results.match_id - matches.id
 Ref: results.created_by > users.id
-Ref: results.checked_by > users.id
+Ref: results.checked_by >? users.id
 
 Ref: ratings.user_id > users.id
-Ref: ratings.match_id > matches.id
-
-Ref: ratings_def.user_id > users.id
-Ref: ratings_def.match_id > matches.id
-
-Ref: ratings_att.user_id > users.id
-Ref: ratings_att.match_id > matches.id
+Ref: ratings.match_id >? matches.id
