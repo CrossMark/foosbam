@@ -5,7 +5,6 @@ from foosbam import db
 from foosbam.models import Match, Result, User
 from foosbam.core import bp, details, elo, misc, ranking, seasons
 from foosbam.core.forms import AddMatchForm, EditProfileForm
-import pandas as pd
 import sqlalchemy as sa
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import aliased
@@ -101,73 +100,97 @@ def add_result():
 @bp.route('/show_results')
 @login_required
 def show_results():
+    return _render_result_table('core/show_results.html')
 
-    u_att_black = aliased(User)
-    u_def_black = aliased(User)
-    u_att_white = aliased(User)
-    u_def_white = aliased(User)
 
-    results = db.session.query(
-        Match.id,
-        Match.played_at,
-        u_att_black.username.label('att_black'),              
-        u_def_black.username.label('def_black'),                
-        u_att_white.username.label('att_white'),              
-        u_def_white.username.label('def_white'),                
-        Result.score_black,     
-        Result.score_white,       
-        Result.status
-    ).join(
-        Match,
-        Result.match_id == Match.id
-    ).join(
-        u_att_black,
-        Match.att_black == u_att_black.id
-    ).join(
-        u_def_black,
-        Match.def_black == u_def_black.id
-    ).join(
-        u_att_white,
-        Match.att_white == u_att_white.id
-    ).join(
-        u_def_white,
-        Match.def_white == u_def_white.id
-    ).all()
+def _render_result_table(template, user=None):
+    user_aliases = {
+        'att_black': aliased(User),
+        'def_black': aliased(User),
+        'att_white': aliased(User),
+        'def_white': aliased(User),
+    }
+    query = db.session.query(
+        Match.id.label('id'),
+        Match.played_at.label('played_at'),
+        Match.season.label('season'),
+        *(alias.username.label(name) for name, alias in user_aliases.items()),
+        Result.score_black.label('score_black'),
+        Result.score_white.label('score_white'),
+        Result.status.label('status'),
+    ).join(Result, Result.match_id == Match.id)
 
-    results_as_dict = [
-        dict(
-            zip(
-                [
-                    'id',
-                    'played_at',
-                    'att_black',
-                    'def_black',
-                    'att_white',
-                    'def_white',
-                    'score_black',
-                    'score_white',
-                    'status',
-                ],
-                result,
+    for name, alias in user_aliases.items():
+        query = query.join(alias, getattr(Match, name) == alias.id)
+
+    if user is not None:
+        query = query.filter(
+            sa.or_(
+                Match.att_black == user.id,
+                Match.def_black == user.id,
+                Match.att_white == user.id,
+                Match.def_white == user.id,
             )
         )
-        for result in results
+
+    search = request.args.get('q', '').strip()[:100]
+    if search:
+        query = query.filter(sa.or_(
+            *(alias.username.ilike(f'%{search}%') for alias in user_aliases.values())
+        ))
+
+    seasons_available = [
+        row[0] for row in db.session.query(Match.season).distinct().order_by(Match.season.desc())
     ]
+    selected_season = request.args.get('season', type=int)
+    if selected_season in seasons_available:
+        query = query.filter(Match.season == selected_season)
+    else:
+        selected_season = None
 
-    df = pd.DataFrame.from_records(results_as_dict)
+    sort_columns = {
+        'date': Match.played_at,
+        **{name: alias.username for name, alias in user_aliases.items()},
+        'score_black': Result.score_black,
+        'score_white': Result.score_white,
+    }
+    sort = request.args.get('sort', 'date')
+    if sort not in sort_columns:
+        sort = 'date'
+    direction = request.args.get('direction', 'desc')
+    if direction not in ('asc', 'desc'):
+        direction = 'desc'
+    sort_column = sort_columns[sort]
+    ordering = sort_column.asc() if direction == 'asc' else sort_column.desc()
+    query = query.order_by(ordering, Match.id.desc())
 
-    if len(df) > 0:
-        df = df.sort_values(by='played_at', ascending=False)
+    page = max(request.args.get('page', 1, type=int) or 1, 1)
+    per_page = request.args.get('per_page', 25, type=int) or 25
+    per_page = min(max(per_page, 1), 100)
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
 
-        # Change played_at column to Amsterdam time (for frontend) and in desired format
-        df['played_at'] = df['played_at'].apply(lambda x : misc.change_timezone(x, 'Etc/UTC', 'Europe/Amsterdam'))
-        df['played_at'] = df['played_at'].dt.strftime('%Y-%m-%d %H:%M')
+    results = []
+    for result in pagination.items:
+        row = dict(result._mapping)
+        row['played_at'] = misc.change_timezone(
+            row['played_at'], 'Etc/UTC', 'Europe/Amsterdam'
+        ).strftime('%Y-%m-%d %H:%M')
+        for name in user_aliases:
+            row[name] = row[name].title()
+        results.append(row)
 
-        # Use the title function on the player names, so they get capitals
-        for col in ['att_black', 'def_black', 'att_white', 'def_white']:
-            df[col] = df[col].str.title()
-    
-    return render_template("core/show_results.html", results=df)
+    return render_template(
+        template,
+        user=user,
+        results=results,
+        pagination=pagination,
+        seasons=seasons_available,
+        selected_season=selected_season,
+        search=search,
+        sort=sort,
+        direction=direction,
+        per_page=per_page,
+    )
 
 @bp.route('/match/<match_id>')
 @login_required
@@ -217,75 +240,7 @@ def show_season_ranking(season):
 @login_required
 def user(user_id):
     user = db.first_or_404(sa.select(User).where(User.id == user_id))
-
-    u_att_black = aliased(User)
-    u_def_black = aliased(User)
-    u_att_white = aliased(User)
-    u_def_white = aliased(User)
-
-    results = db.session.query(
-        Match.id,
-        Match.played_at,
-        u_att_black.username.label('att_black'),              
-        u_def_black.username.label('def_black'),                
-        u_att_white.username.label('att_white'),              
-        u_def_white.username.label('def_white'),                
-        Result.score_black,     
-        Result.score_white,       
-        Result.status
-    ).join(
-        Match,
-        Result.match_id == Match.id
-    ).join(
-        u_att_black,
-        Match.att_black == u_att_black.id
-    ).join(
-        u_def_black,
-        Match.def_black == u_def_black.id
-    ).join(
-        u_att_white,
-        Match.att_white == u_att_white.id
-    ).join(
-        u_def_white,
-        Match.def_white == u_def_white.id
-    ).filter(
-        (Match.def_white == user_id) | (Match.att_white == user_id) | (Match.def_black == user_id) | (Match.att_black == user_id)
-    ).all()
-
-    results_as_dict = [
-        dict(
-            zip(
-                [
-                    'id',
-                    'played_at',
-                    'att_black',
-                    'def_black',
-                    'att_white',
-                    'def_white',
-                    'score_black',
-                    'score_white',
-                    'status',
-                ],
-                result,
-            )
-        )
-        for result in results
-    ]
-
-    df = pd.DataFrame.from_records(results_as_dict)
-
-    if len(df) > 0:
-        df = df.sort_values(by='played_at', ascending=False)
-
-        # Change played_at column to Amsterdam time (for frontend) and in desired format
-        df['played_at'] = df['played_at'].apply(lambda x : misc.change_timezone(x, 'Etc/UTC', 'Europe/Amsterdam'))
-        df['played_at'] = df['played_at'].dt.strftime('%Y-%m-%d %H:%M')
-
-        # Use the title function on the player names, so they get capitals
-        for col in ['att_black', 'def_black', 'att_white', 'def_white']:
-            df[col] = df[col].str.title()
-    
-    return render_template("core/user.html", user=user, results=df)
+    return _render_result_table('core/user.html', user=user)
 
 @bp.route('/edit_profile', methods=['GET', 'POST'])
 @login_required
