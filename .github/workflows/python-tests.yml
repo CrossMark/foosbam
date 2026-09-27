@@ -1,4 +1,4 @@
-name: Tests
+name: Python tests and coverage
 
 on:
   push:
@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  test-suite:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -20,11 +20,11 @@ jobs:
           python-version: "3.10"
           cache: pip
 
-      - name: Install dependencies
+      - name: Install test dependencies
         run: python -m pip install -r requirements-dev.txt
 
-      - name: Run tests with branch coverage
+      - name: Run unit tests with branch coverage
         run: python -m coverage run --branch --source=foosbam,config,app -m unittest discover -s tests
 
-      - name: Enforce complete coverage
+      - name: Enforce 100% coverage
         run: python -m coverage report --fail-under=100
