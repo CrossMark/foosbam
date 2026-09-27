@@ -1,5 +1,8 @@
 # Foosbam
 
+[![Tests and coverage](https://github.com/CrossMark/foosbam/actions/workflows/tests.yml/badge.svg)](https://github.com/CrossMark/foosbam/actions/workflows/tests.yml)
+[![Coverage](https://codecov.io/gh/CrossMark/foosbam/branch/main/graph/badge.svg)](https://codecov.io/gh/CrossMark/foosbam)
+
 Foosbam is a Flask web application for keeping track of foosball matches. Players can record results, build an individual ELO rating, compare rankings, and review their match history and statistics.
 
 This README is intended both for users who want to run their own instance and for developers who need to maintain the application.

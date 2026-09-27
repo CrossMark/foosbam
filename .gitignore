@@ -5,3 +5,4 @@
 *.flaskenv
 app.sqlite
 .coverage
+coverage.xml
