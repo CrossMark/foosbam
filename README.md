@@ -91,6 +91,14 @@ The application uses `app.sqlite` by default. Apply the existing database migrat
 flask --app app db upgrade
 ```
 
+To populate a new local database with sample players, matches, results, and ratings, seed it once:
+
+```bash
+flask --app app --debug seed-demo-data
+```
+
+The command creates 120 demo matches across eight seasons. Running it again replaces the demo match, result, and rating history with a fresh sample set, while keeping the five demo accounts. It refuses to replace data if non-demo users are present. The sample matches use valid scores. In this local debug database, each demo account's password is its username (for example, `demo_alex` / `demo_alex`). This predictable password is only for local development; do not use demo accounts or debug mode in production. Newly submitted results must have a 2-point difference, with the winning score at least 10. The SQLite file is retained between application starts; do not delete it to restart the development server.
+
 Start the development server:
 
 ```bash
