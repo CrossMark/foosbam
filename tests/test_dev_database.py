@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 
 from foosbam import create_app, db
 from foosbam.models import Match, Rating, Result, User
@@ -79,6 +80,53 @@ class DemoDataCommandTests(unittest.TestCase):
         self.assertNotEqual(result.exit_code, 0)
         self.assertIn('debug mode enabled', result.output)
         self.assertEqual(User.query.count(), 0)
+
+    def test_seed_rejects_unsupported_database_and_unmanaged_data(self):
+        self.app.config['DEBUG'] = True
+        with patch.object(db.engine.dialect, 'name', 'postgresql'):
+            unsupported = self.runner.invoke(args=['seed-demo-data'])
+        self.assertNotEqual(unsupported.exit_code, 0)
+        self.assertIn('SQLite database', unsupported.output)
+
+        db.session.add(User(
+            username='demo_alex',
+            email='demo_alex@example.invalid',
+            password_hash='unused',
+        ))
+        db.session.commit()
+        partial = self.runner.invoke(args=['seed-demo-data'])
+        self.assertNotEqual(partial.exit_code, 0)
+        self.assertIn('only some demo users', partial.output)
+        self.assertEqual(User.query.count(), 1)
+
+        db.session.remove()
+        db.drop_all()
+        db.create_all()
+        db.session.add(User(
+            username='regular',
+            email='regular@example.com',
+            password_hash='unused',
+        ))
+        db.session.commit()
+        unmanaged = self.runner.invoke(args=['seed-demo-data'])
+        self.assertNotEqual(unmanaged.exit_code, 0)
+        self.assertIn('not empty', unmanaged.output)
+
+    def test_seed_rejects_non_demo_user_alongside_complete_demo_accounts(self):
+        self.app.config['DEBUG'] = True
+        result = self.runner.invoke(args=['seed-demo-data'])
+        self.assertEqual(result.exit_code, 0, result.output)
+        db.session.add(User(
+            username='regular',
+            email='regular@example.com',
+            password_hash='unused',
+        ))
+        db.session.commit()
+
+        mixed = self.runner.invoke(args=['seed-demo-data'])
+
+        self.assertNotEqual(mixed.exit_code, 0)
+        self.assertIn('non-demo users', mixed.output)
 
 
 if __name__ == '__main__':

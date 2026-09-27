@@ -1,5 +1,7 @@
 # Foosbam
 
+[![Python tests](https://github.com/CrossMark/foosbam/actions/workflows/python-tests.yml/badge.svg)](https://github.com/CrossMark/foosbam/actions/workflows/python-tests.yml)
+
 Foosbam is a Flask web application for keeping track of foosball matches. Players can record results, build an individual ELO rating, compare rankings, and review their match history and statistics.
 
 This README is intended both for users who want to run their own instance and for developers who need to maintain the application.
@@ -209,6 +211,19 @@ For a normal code change:
 5. Test the affected workflow locally.
 
 Do not casually edit migration files that have already been applied to a shared or production database. Create a new migration instead. When SQLite is used, back up `app.sqlite` before applying significant schema changes. On PythonAnywhere, reload the web app after deploying code or configuration changes.
+
+### Tests and coverage
+
+Install the development requirements to run the test suite and measure application-code coverage:
+
+```bash
+python -m pip install -r requirements-dev.txt
+python -m unittest discover -s tests -v
+python -m coverage run --branch --source=foosbam,config,app -m unittest discover -s tests
+python -m coverage report -m
+```
+
+Coverage is measured for the `foosbam` application package and its root configuration and WSGI entry point; migration scripts, templates, and static assets are outside that application-code total.
 
 ## Troubleshooting
 
