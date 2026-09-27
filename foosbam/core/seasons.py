@@ -59,7 +59,7 @@ def get_dates_from_season(season: int) -> List[str]:
 
     Examples:
         >>> get_dates_from_season(1)
-        ['2023-11-30', '2024-03-30']
+        ['2023-11-30', '2024-03-31']
         >>> get_dates_from_season(2)
         ['2024-04-01', '2024-06-30']
         >>> get_dates_from_season(3)
@@ -70,7 +70,7 @@ def get_dates_from_season(season: int) -> List[str]:
     
     if season == 1:  # Exception for the first season
         start_date = dt.datetime(2023, 11, 30)
-        end_date = dt.datetime(2024, 3, 30)
+        end_date = dt.datetime(2024, 3, 31)
     else:
         year = 2023 + ceil(season/4)
 
