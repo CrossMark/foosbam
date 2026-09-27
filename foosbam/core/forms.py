@@ -30,7 +30,17 @@ class AddMatchForm(FlaskForm):
     add_result = SubmitField('Add result', name='Add result')
   
     def validate(self, extra_validators=None):
-        if not super().validate():
+        if not super().validate(extra_validators):
+            return False
+
+        score_black = self.score_black.data
+        score_white = self.score_white.data
+        if max(score_black, score_white) < 10 or abs(score_black - score_white) != 2:
+            error = (
+                'Scores must differ by exactly 2 points, and the winning team must score at least 10.'
+            )
+            self.score_black.errors.append(error)
+            self.score_white.errors.append(error)
             return False
         
         # Check for unique timestamp (1 foosball table, so no games can be played simultaneously)

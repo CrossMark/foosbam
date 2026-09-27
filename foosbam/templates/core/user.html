@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 
 {% block content %}
+    {% macro sort_link(label, key) -%}
+        <a href="{{ url_for(request.endpoint, user_id=user.id, q=search, season=selected_season, sort=key, direction='asc' if sort == key and direction == 'desc' else 'desc', per_page=per_page) }}">
+            {{ label }}{% if sort == key %} {{ '↑' if direction == 'asc' else '↓' }}{% endif %}
+        </a>
+    {%- endmacro %}
     <section class="section">
         <h1 class="title">{{ user.username.title() }}</h1>
         
@@ -14,21 +19,51 @@
     <section class="section">
         <h1 class="subtitle">Latest matches of {{ user.username.title() }}</h1>
 
+        <form method="get" action="{{ request.path }}" class="field is-grouped is-grouped-multiline">
+            <input type="hidden" name="sort" value="{{ sort }}">
+            <input type="hidden" name="direction" value="{{ direction }}">
+            <div class="control">
+                <input class="input" type="search" name="q" value="{{ search }}" placeholder="Search players" aria-label="Search players">
+            </div>
+            <div class="control">
+                <div class="select">
+                    <select name="season" aria-label="Filter by season">
+                        <option value="">All seasons</option>
+                        {% for season in seasons %}
+                            <option value="{{ season }}" {% if selected_season == season %}selected{% endif %}>Season {{ season }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="control">
+                <div class="select">
+                    <select name="per_page" aria-label="Rows per page">
+                        {% for size in [25, 50, 100] %}
+                            <option value="{{ size }}" {% if per_page == size %}selected{% endif %}>{{ size }} per page</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="control">
+                <button class="button is-link" type="submit">Apply</button>
+            </div>
+        </form>
+
         <div class="table-container">
             <table class="table is-striped is-hoverable">
                 <thead>
                 <tr>
-                    <th>Date</th>
-                    <th>Black - Defender</th>
-                    <th>Black - Attacker</th>
-                    <th>White - Defender</th> 
-                    <th>White - Attacker</th>
-                    <th>Black - Score</th>
-                    <th>White - Score</th>
+                    <th>{{ sort_link('Date', 'date') }}</th>
+                    <th>{{ sort_link('Black - Defender', 'def_black') }}</th>
+                    <th>{{ sort_link('Black - Attacker', 'att_black') }}</th>
+                    <th>{{ sort_link('White - Defender', 'def_white') }}</th>
+                    <th>{{ sort_link('White - Attacker', 'att_white') }}</th>
+                    <th>{{ sort_link('Black - Score', 'score_black') }}</th>
+                    <th>{{ sort_link('White - Score', 'score_white') }}</th>
                 </tr>
                 </thead>
                 <tbody>
-                {% for index, row in results.iterrows() %}
+                {% for row in results %}
                 <tr>
                     <th>
                         <a href="{{ url_for('core.match', match_id=row['id']) }}">{{ row['played_at'] }}</a>
@@ -41,8 +76,25 @@
                     <td>{{ row['score_white'] }}</td>
                 </tr>
                 {% endfor %}
+                {% if not results %}
+                <tr><td colspan="7">No matches found.</td></tr>
+                {% endif %}
                 </tbody>
             </table>
         </div>
+
+        <nav class="pagination is-centered" role="navigation" aria-label="Pagination">
+            {% if pagination.has_prev %}
+                <a class="pagination-previous" href="{{ url_for(request.endpoint, user_id=user.id, q=search, season=selected_season, sort=sort, direction=direction, per_page=per_page, page=pagination.prev_num) }}">Previous</a>
+            {% else %}
+                <span class="pagination-previous" aria-disabled="true">Previous</span>
+            {% endif %}
+            {% if pagination.has_next %}
+                <a class="pagination-next" href="{{ url_for(request.endpoint, user_id=user.id, q=search, season=selected_season, sort=sort, direction=direction, per_page=per_page, page=pagination.next_num) }}">Next</a>
+            {% else %}
+                <span class="pagination-next" aria-disabled="true">Next</span>
+            {% endif %}
+            <span class="pagination-list">Page {{ pagination.page }} of {{ pagination.pages or 1 }} ({{ pagination.total }} matches)</span>
+        </nav>
     </section>
 {% endblock %}

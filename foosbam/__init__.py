@@ -17,7 +17,7 @@ login.login_message_category = "is-danger"
 
 def create_app(config_class=Config):
     app = Flask(__name__)
-    app.config.from_object(Config)
+    app.config.from_object(config_class)
     
     db.init_app(app)
     if os.environ.get('FLASK_ENV') == 'development':
@@ -32,6 +32,9 @@ def create_app(config_class=Config):
 
     from foosbam.core import bp as core_bp
     app.register_blueprint(core_bp)
+
+    from foosbam.commands import register_cli_commands
+    register_cli_commands(app)
 
     return app
 
