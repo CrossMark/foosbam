@@ -44,8 +44,12 @@ class DemoDataCommandTests(unittest.TestCase):
         self.assertIn(1, seeded_seasons)
         self.assertIn(2, seeded_seasons)
         for result in Result.query.all():
-            self.assertEqual(abs(result.score_black - result.score_white), 2)
+            self.assertGreaterEqual(abs(result.score_black - result.score_white), 2)
             self.assertGreaterEqual(max(result.score_black, result.score_white), 10)
+        self.assertTrue(any(
+            abs(result.score_black - result.score_white) > 2
+            for result in Result.query.all()
+        ))
 
         client = self.app.test_client()
         demo_alex = User.query.filter_by(username='demo_alex').one()
