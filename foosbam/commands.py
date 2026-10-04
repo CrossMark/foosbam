@@ -144,10 +144,11 @@ def register_cli_commands(app: Flask) -> None:
                         for offset in range(4)
                     )
                     winner_score = 10 + 2 * (game_index % 4)
+                    score_margin = 2 + (game_index % 4)
                     if game_index % 2 == 0:
-                        score_black, score_white = winner_score, winner_score - 2
+                        score_black, score_white = winner_score, winner_score - score_margin
                     else:
-                        score_black, score_white = winner_score - 2, winner_score
+                        score_black, score_white = winner_score - score_margin, winner_score
                     game = (
                         *(DEMO_USERNAMES[player_index] for player_index in player_indexes),
                         score_black,

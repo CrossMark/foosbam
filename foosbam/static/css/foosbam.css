@@ -1,0 +1,29 @@
+.kruipen-filter {
+    align-items: center;
+    background: #fff;
+    border: 1px solid #dbdbdb;
+    border-radius: 4px;
+    box-sizing: border-box;
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 1rem;
+    line-height: 1.5;
+    min-height: 2.5em;
+    padding: 0 0.75em;
+}
+
+.kruipen-filter:hover {
+    border-color: #b5b5b5;
+}
+
+.kruipen-filter:focus-within {
+    border-color: #485fc7;
+    box-shadow: 0 0 0 0.125em rgb(72 95 199 / 25%);
+}
+
+.kruipen-filter input {
+    flex: none;
+    height: 1.125em;
+    margin: 0 0.5em 0 0;
+    width: 1.125em;
+}

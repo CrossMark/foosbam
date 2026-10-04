@@ -35,9 +35,9 @@ class AddMatchForm(FlaskForm):
 
         score_black = self.score_black.data
         score_white = self.score_white.data
-        if max(score_black, score_white) < 10 or abs(score_black - score_white) != 2:
+        if max(score_black, score_white) < 10 or abs(score_black - score_white) < 2:
             error = (
-                'Scores must differ by exactly 2 points, and the winning team must score at least 10.'
+                'Scores must differ by at least 2 points, and the winning team must score at least 10.'
             )
             self.score_black.errors.append(error)
             self.score_white.errors.append(error)

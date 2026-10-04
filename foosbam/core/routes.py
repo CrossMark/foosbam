@@ -148,6 +148,15 @@ def _render_result_table(template, user=None):
     else:
         selected_season = None
 
+    kruipen_filter = request.args.get('kruipen', 'all')
+    if kruipen_filter == 'only':
+        query = query.filter(sa.or_(
+            Result.score_black <= 0,
+            Result.score_white <= 0,
+        ))
+    else:
+        kruipen_filter = 'all'
+
     sort_columns = {
         'date': Match.played_at,
         **{name: alias.username for name, alias in user_aliases.items()},
@@ -172,6 +181,7 @@ def _render_result_table(template, user=None):
     results = []
     for result in pagination.items:
         row = dict(result._mapping)
+        row['is_kruipen'] = row['score_black'] <= 0 or row['score_white'] <= 0
         row['played_at'] = misc.change_timezone(
             row['played_at'], 'Etc/UTC', 'Europe/Amsterdam'
         ).strftime('%Y-%m-%d %H:%M')
@@ -190,6 +200,7 @@ def _render_result_table(template, user=None):
         sort=sort,
         direction=direction,
         per_page=per_page,
+        kruipen_filter=kruipen_filter,
     )
 
 @bp.route('/match/<match_id>')

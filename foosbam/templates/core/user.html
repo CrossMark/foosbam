@@ -2,7 +2,7 @@
 
 {% block content %}
     {% macro sort_link(label, key) -%}
-        <a href="{{ url_for(request.endpoint, user_id=user.id, q=search, season=selected_season, sort=key, direction='asc' if sort == key and direction == 'desc' else 'desc', per_page=per_page) }}">
+        <a href="{{ url_for(request.endpoint, user_id=user.id, q=search, season=selected_season, kruipen=kruipen_filter, sort=key, direction='asc' if sort == key and direction == 'desc' else 'desc', per_page=per_page) }}">
             {{ label }}{% if sort == key %} {{ '↑' if direction == 'asc' else '↓' }}{% endif %}
         </a>
     {%- endmacro %}
@@ -36,6 +36,12 @@
                 </div>
             </div>
             <div class="control">
+                <label class="checkbox kruipen-filter">
+                    <input type="checkbox" name="kruipen" value="only" {% if kruipen_filter == 'only' %}checked{% endif %}>
+                    Kruipen only
+                </label>
+            </div>
+            <div class="control">
                 <div class="select">
                     <select name="per_page" aria-label="Rows per page">
                         {% for size in [25, 50, 100] %}
@@ -64,7 +70,7 @@
                 </thead>
                 <tbody>
                 {% for row in results %}
-                <tr>
+                <tr{% if row['is_kruipen'] %} class="has-background-danger-light"{% endif %}>
                     <th>
                         <a href="{{ url_for('core.match', match_id=row['id']) }}">{{ row['played_at'] }}</a>
                     </th>
@@ -85,12 +91,12 @@
 
         <nav class="pagination is-centered" role="navigation" aria-label="Pagination">
             {% if pagination.has_prev %}
-                <a class="pagination-previous" href="{{ url_for(request.endpoint, user_id=user.id, q=search, season=selected_season, sort=sort, direction=direction, per_page=per_page, page=pagination.prev_num) }}">Previous</a>
+                <a class="pagination-previous" href="{{ url_for(request.endpoint, user_id=user.id, q=search, season=selected_season, kruipen=kruipen_filter, sort=sort, direction=direction, per_page=per_page, page=pagination.prev_num) }}">Previous</a>
             {% else %}
                 <span class="pagination-previous" aria-disabled="true">Previous</span>
             {% endif %}
             {% if pagination.has_next %}
-                <a class="pagination-next" href="{{ url_for(request.endpoint, user_id=user.id, q=search, season=selected_season, sort=sort, direction=direction, per_page=per_page, page=pagination.next_num) }}">Next</a>
+                <a class="pagination-next" href="{{ url_for(request.endpoint, user_id=user.id, q=search, season=selected_season, kruipen=kruipen_filter, sort=sort, direction=direction, per_page=per_page, page=pagination.next_num) }}">Next</a>
             {% else %}
                 <span class="pagination-next" aria-disabled="true">Next</span>
             {% endif %}
