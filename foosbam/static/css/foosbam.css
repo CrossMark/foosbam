@@ -27,3 +27,40 @@
     margin: 0 0.5em 0 0;
     width: 1.125em;
 }
+
+.kruipen-row {
+    background: #feecf0 !important;
+    color: #000 !important;
+}
+
+.kruipen-row th,
+.kruipen-row td,
+.kruipen-row a {
+    color: #000 !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    .kruipen-filter {
+        background: #363636;
+        border-color: #4a4a4a;
+        color: #fff;
+    }
+
+    .kruipen-filter:hover {
+        border-color: #6a6a6a;
+    }
+
+    .kruipen-filter:focus-within {
+        border-color: #8ab4ff;
+        box-shadow: 0 0 0 0.125em rgb(138 180 255 / 25%);
+    }
+
+    .table a,
+    .pagination a {
+        color: #8ab4ff;
+    }
+
+    .kruipen-row a {
+        color: #000 !important;
+    }
+}

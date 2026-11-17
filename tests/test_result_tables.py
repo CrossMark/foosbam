@@ -1,6 +1,6 @@
+import re
 import unittest
 from datetime import datetime
-import re
 from unittest.mock import patch
 
 from foosbam import create_app, db
@@ -136,10 +136,10 @@ class ResultTableRouteTests(unittest.TestCase):
                 self.assertEqual(response.status_code, 200)
                 for match in (zero_score_match, negative_score_match):
                     row = self._result_row(body, match.id)
-                    self.assertIn('has-background-danger-light', row)
+                    self.assertIn('kruipen-row', row)
 
                 positive_row = self._result_row(body, self.matches[0].id)
-                self.assertNotIn('has-background-danger-light', positive_row)
+                self.assertNotIn('kruipen-row', positive_row)
 
     def test_kruipen_filter_limits_results_and_persists_across_pages(self):
         zero_score_match = self.add_match(
