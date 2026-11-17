@@ -136,6 +136,7 @@ class ResultTableRouteTests(unittest.TestCase):
                 self.assertEqual(response.status_code, 200)
                 for match in (zero_score_match, negative_score_match):
                     row = self._result_row(body, match.id)
+                    self.assertIn('has-background-danger-light', row)
                     self.assertIn('kruipen-row', row)
 
                 positive_row = self._result_row(body, self.matches[0].id)
