@@ -28,6 +28,10 @@
     width: 1.125em;
 }
 
+.table.is-hoverable tbody tr.kruipen-row:hover {
+    background-color: #f7b7c5 !important;
+}
+
 @media (prefers-color-scheme: dark) {
     .kruipen-filter {
         background: #363636;
@@ -52,6 +56,10 @@
     .kruipen-row {
         background: #4a2630 !important;
         color: #f5e9ec !important;
+    }
+
+    .table.is-hoverable tbody tr.kruipen-row:hover {
+        background-color: #5c303b !important;
     }
 
     .kruipen-row th,
