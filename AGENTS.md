@@ -6,6 +6,7 @@ Foosbam is a Flask application. Read [README.md](README.md) for setup and archit
 
 - Keep changes focused and follow existing patterns in the relevant blueprint, model, template, or core module.
 - Add or update tests for behavior changes. Tests use `unittest`; the CI workflow enforces 100% branch coverage for application code.
+- For visual changes, follow established design conventions and keep content readable, accessible, and interactive states clear across themes.
 - For model or schema changes, create and review a new Alembic migration. Do not rewrite migrations that may have been applied to shared databases.
 - Treat `app.sqlite` as persistent local data. Do not delete, reset, or modify it as part of routine development or testing.
 - Keep credentials and other secrets out of source control.

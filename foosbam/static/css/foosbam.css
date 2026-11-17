@@ -27,3 +27,59 @@
     margin: 0 0.5em 0 0;
     width: 1.125em;
 }
+
+.table.is-hoverable tbody tr.kruipen-row:hover {
+    background-color: #f7b7c5 !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    .kruipen-filter {
+        background: #363636;
+        border-color: #4a4a4a;
+        color: #fff;
+    }
+
+    .kruipen-filter:hover {
+        border-color: #6a6a6a;
+    }
+
+    .kruipen-filter:focus-within {
+        border-color: #8ab4ff;
+        box-shadow: 0 0 0 0.125em rgb(138 180 255 / 25%);
+    }
+
+    .table a,
+    .pagination a {
+        color: #a8c7fa;
+    }
+
+    .kruipen-row {
+        background: #4a2630 !important;
+        color: #f5e9ec !important;
+    }
+
+    .table.is-hoverable tbody tr.kruipen-row:hover {
+        background-color: #5c303b !important;
+    }
+
+    .kruipen-row th,
+    .kruipen-row td {
+        color: #f5e9ec !important;
+    }
+
+    .table .kruipen-row a:link,
+    .table .kruipen-row a:visited {
+        color: #a8c7fa !important;
+        font-weight: 600;
+    }
+
+    .table .kruipen-row a:hover {
+        color: #c6dcff !important;
+    }
+
+    .table .kruipen-row a:focus-visible {
+        outline: 2px solid currentColor;
+        outline-offset: 2px;
+        border-radius: 2px;
+    }
+}

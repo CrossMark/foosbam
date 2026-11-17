@@ -60,7 +60,7 @@
                 </thead>
                 <tbody>
                 {% for row in results %}
-                <tr{% if row['is_kruipen'] %} class="has-background-danger-light"{% endif %}>
+                <tr{% if row['is_kruipen'] %} class="has-background-danger-light kruipen-row"{% endif %}>
                     <th>
                         <a href="{{ url_for('core.match', match_id=row['id']) }}">{{ row['played_at'] }}</a>
                     </th>
