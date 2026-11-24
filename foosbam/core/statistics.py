@@ -70,7 +70,7 @@ def get_leaderboards(searches):
             if search in row['players'][0]['name'].casefold()
             or (search_both and search in row['players'][1]['name'].casefold())
         ]
-        return sorted(rows, key=key)[:10]
+        return sorted(rows, key=key)
 
     rivalry_rows = [
         {'players': [player(p), player(opponent)], 'wins': wins, 'matches': matches}

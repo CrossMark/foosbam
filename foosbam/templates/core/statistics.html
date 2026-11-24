@@ -15,11 +15,14 @@
     ] %}
     {% for category, title, description in boards %}
     <section class="block" id="{{ category }}">
-        <h2 class="title is-4">{{ title }} — top 10</h2>
+        <h2 class="title is-4">{{ title }}</h2>
         <p class="mb-3">{{ description }}</p>
         <form method="get" action="{{ url_for('core.show_statistics') }}#{{ category }}" class="field is-grouped">
             {% for other, value in searches.items() if other != category and value %}
             <input type="hidden" name="{{ other }}" value="{{ value }}">
+            {% endfor %}
+            {% for other, board in leaderboards.items() if other != category and board.page > 1 %}
+            <input type="hidden" name="{{ other }}_page" value="{{ board.page }}">
             {% endfor %}
             <div class="control">
                 <input class="input" type="search" name="{{ category }}" value="{{ searches[category] }}" placeholder="Search players" aria-label="Search {{ title }} by player">
@@ -43,9 +46,9 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for row in leaderboards[category] %}
+                    {% for row in leaderboards[category].rows %}
                     <tr>
-                        <th scope="row">{{ loop.index }}</th>
+                        <th scope="row">{{ (leaderboards[category].page - 1) * 10 + loop.index }}</th>
                         <td>
                             {% for player in row.players %}
                             {% if category == 'rivalry' and not loop.first %}</td><td>{% elif not loop.first %} &amp; {% endif %}
@@ -66,6 +69,20 @@
                 </tbody>
             </table>
         </div>
+        {% set board = leaderboards[category] %}
+        <nav class="pagination is-centered" role="navigation" aria-label="{{ title }} pages">
+            {% if board.page > 1 %}
+            <a class="pagination-previous" href="{{ page_links[category].previous }}">Previous</a>
+            {% else %}
+            <span class="pagination-previous" aria-disabled="true">Previous</span>
+            {% endif %}
+            {% if board.page < board.pages %}
+            <a class="pagination-next" href="{{ page_links[category].next }}">Next</a>
+            {% else %}
+            <span class="pagination-next" aria-disabled="true">Next</span>
+            {% endif %}
+            <span class="pagination-list">Page {{ board.page }} of {{ board.pages }} ({{ board.total }} results)</span>
+        </nav>
     </section>
     {% endfor %}
 </section>

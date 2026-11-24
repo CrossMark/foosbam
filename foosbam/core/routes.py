@@ -239,9 +239,36 @@ def show_ranking():
 def show_statistics():
     categories = ('rivalry', 'partnership', 'keeper', 'klinker', 'attacker', 'defender')
     searches = {category: request.args.get(category, '').strip()[:100] for category in categories}
+    rankings = statistics.get_leaderboards(searches)
+    leaderboards = {}
+    for category, rows in rankings.items():
+        pages = max(1, (len(rows) + 9) // 10)
+        page = min(max(request.args.get(f'{category}_page', 1, type=int) or 1, 1), pages)
+        leaderboards[category] = {
+            'rows': rows[(page - 1) * 10:page * 10],
+            'page': page, 'pages': pages, 'total': len(rows),
+        }
+
+    params = {
+        **searches,
+        **{f'{category}_page': board['page'] for category, board in leaderboards.items()},
+    }
+    page_links = {
+        category: {
+            'previous': url_for(
+                'core.show_statistics', _anchor=category,
+                **{**params, f'{category}_page': board['page'] - 1},
+            ),
+            'next': url_for(
+                'core.show_statistics', _anchor=category,
+                **{**params, f'{category}_page': board['page'] + 1},
+            ),
+        }
+        for category, board in leaderboards.items()
+    }
     return render_template(
-        'core/statistics.html', searches=searches,
-        leaderboards=statistics.get_leaderboards(searches),
+        'core/statistics.html', searches=searches, leaderboards=leaderboards,
+        page_links=page_links,
     )
 
 @bp.route('/show_season')

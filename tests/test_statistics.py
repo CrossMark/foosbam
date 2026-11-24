@@ -1,6 +1,8 @@
 import re
 import unittest
 from datetime import datetime, timedelta
+from html import unescape
+from urllib.parse import parse_qs, urlsplit
 
 from foosbam import create_app, db
 from foosbam.core.statistics import get_leaderboards, get_player_roles
@@ -90,7 +92,7 @@ class StatisticsTests(unittest.TestCase):
         self.assertIn('33.3%', profile)
         self.assertIn('100.0%', profile)
 
-    def test_top_ten_searches_before_limiting_and_empty_results(self):
+    def test_rankings_and_search_include_all_results(self):
         for index in range(12):
             name = f'player{index:02}'
             self.players[name] = User(username=name, email=f'{name}@example.com', password_hash='unused')
@@ -99,10 +101,10 @@ class StatisticsTests(unittest.TestCase):
             self.add_match(index, (name, 'bob', 'carol', 'dave'), keepers=(index, 0))
         db.session.commit()
         boards = self.boards()
-        self.assertEqual(len(boards['rivalry']), 10)
-        self.assertEqual(len(boards['partnership']), 10)
-        self.assertEqual(len(boards['klinker']), 10)
-        self.assertEqual(len(boards['attacker']), 10)
+        self.assertGreater(len(boards['rivalry']), 10)
+        self.assertGreater(len(boards['partnership']), 10)
+        self.assertGreater(len(boards['klinker']), 10)
+        self.assertGreater(len(boards['attacker']), 10)
         boards = self.boards(rivalry='player11', partnership='player11', klinker='player11',
                              attacker='player11', keeper='missing', defender='missing')
         for category in ('rivalry', 'partnership', 'klinker', 'attacker'):
@@ -110,6 +112,50 @@ class StatisticsTests(unittest.TestCase):
             self.assertTrue(any(p['name'] == 'Player11' for p in boards[category][0]['players']))
         self.assertEqual(boards['keeper'], [])
         self.assertEqual(boards['defender'], [])
+
+    def test_independent_pagination_and_search(self):
+        for index in range(12):
+            name = f'player{index:02}'
+            self.players[name] = User(username=name, email=f'{name}@example.com', password_hash='unused')
+            db.session.add(self.players[name])
+            db.session.flush()
+            self.add_match(index, (name, 'bob', 'carol', 'dave'))
+            self.add_match(index + 12, ('alice', name, 'bob', 'carol'))
+        db.session.commit()
+
+        def section(body, category):
+            return re.search(rf'<section class="block" id="{category}">(.*?)</section>', body, re.S).group(1)
+
+        for category in ('rivalry', 'partnership', 'keeper', 'klinker', 'attacker', 'defender'):
+            with self.subTest(category=category):
+                first = section(self.client.get(f'/statistics?{category}=player').get_data(as_text=True), category)
+                self.assertIn('Page 1 of ', first)
+                self.assertIn('<th scope="row">10</th>', first)
+                self.assertNotIn('<th scope="row">11</th>', first)
+                link = unescape(re.search(r'<a class="pagination-next" href="([^"]+)"', first).group(1))
+                second = section(self.client.get(link).get_data(as_text=True), category)
+                self.assertIn('Page 2 of ', second)
+                self.assertIn('<th scope="row">11</th>', second)
+                self.assertIn('pagination-previous', second)
+                self.assertEqual(parse_qs(urlsplit(link).query)[category], ['player'])
+
+        body = self.client.get('/statistics?attacker=player&attacker_page=2&keeper=player&keeper_page=2').get_data(as_text=True)
+        attacker = section(body, 'attacker')
+        self.assertIn('name="keeper_page" value="2"', attacker)
+        self.assertNotIn('name="attacker_page"', attacker)
+        link = unescape(re.search(r'<a class="pagination-previous" href="([^"]+)"', attacker).group(1))
+        query = parse_qs(urlsplit(link).query)
+        self.assertEqual(query['keeper_page'], ['2'])
+        self.assertEqual(query['keeper'], ['player'])
+        self.assertEqual(query['attacker_page'], ['1'])
+
+        filtered = section(self.client.get('/statistics?attacker=player11&attacker_page=2').get_data(as_text=True), 'attacker')
+        self.assertIn('Page 1 of 1 (1 results)', filtered)
+        self.assertIn('Player11', filtered)
+        invalid = self.client.get('/statistics?attacker_page=invalid&keeper_page=-1&defender_page=999').get_data(as_text=True)
+        self.assertIn('Page 1 of 2', section(invalid, 'attacker'))
+        self.assertIn('Page 1 of 2', section(invalid, 'keeper'))
+        self.assertIn('Page 2 of 2', section(invalid, 'defender'))
 
     def test_page_searches_are_independent_and_preserved(self):
         self.add_match(0, ('alice', 'bob', 'carol', 'dave'))
