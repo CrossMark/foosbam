@@ -17,6 +17,26 @@
     </section>
 
     <section class="section">
+        <h2 class="subtitle">Performance by role</h2>
+        <div class="table-container">
+            <table class="table is-striped">
+                <thead><tr><th>Role</th><th>Wins</th><th>Matches</th><th>Win rate</th></tr></thead>
+                <tbody>
+                    {% for role, stats in role_stats.items() %}
+                    <tr>
+                        <th scope="row">{{ role.title() }}</th>
+                        <td>{{ stats.wins }}</td>
+                        <td>{{ stats.matches }}</td>
+                        <td>{% if stats.matches %}{{ '%.1f'|format(100 * stats.wins / stats.matches) }}%{% else %}—{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <a href="{{ url_for('core.show_statistics', attacker=user.username, defender=user.username) }}">View role leaderboards</a>
+    </section>
+
+    <section class="section">
         <h1 class="subtitle">Latest matches of {{ user.username.title() }}</h1>
 
         <form method="get" action="{{ request.path }}" class="field is-grouped is-grouped-multiline">

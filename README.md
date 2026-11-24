@@ -13,6 +13,7 @@ This README is intended both for users who want to run their own instance and fo
 - Recording and editing foosball match results.
 - Individual ELO ratings and season-based rankings.
 - Ranking, results, match, and player statistics pages.
+- Searchable all-time top 10 statistics for rivalries, partnerships, keeper goals, klinkers, and attacker/defender win rates.
 - Database migrations managed with Flask-Migrate and Alembic.
 
 ## How the application is organized

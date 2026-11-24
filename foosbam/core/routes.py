@@ -3,7 +3,7 @@ from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from foosbam import db
 from foosbam.models import Match, Result, User
-from foosbam.core import bp, details, elo, misc, ranking, seasons
+from foosbam.core import bp, details, elo, misc, ranking, seasons, statistics
 from foosbam.core.forms import AddMatchForm, EditProfileForm
 import sqlalchemy as sa
 from sqlalchemy.exc import IntegrityError
@@ -103,7 +103,7 @@ def show_results():
     return _render_result_table('core/show_results.html')
 
 
-def _render_result_table(template, user=None):
+def _render_result_table(template, user=None, role_stats=None):
     user_aliases = {
         'att_black': aliased(User),
         'def_black': aliased(User),
@@ -192,6 +192,7 @@ def _render_result_table(template, user=None):
     return render_template(
         template,
         user=user,
+        role_stats=role_stats,
         results=results,
         pagination=pagination,
         seasons=seasons_available,
@@ -233,6 +234,16 @@ def show_ranking():
     r = ranking.get_current_ranking()
     return render_template("core/show_ranking.html", ranking=r)
 
+@bp.route('/statistics')
+@login_required
+def show_statistics():
+    categories = ('rivalry', 'partnership', 'keeper', 'klinker', 'attacker', 'defender')
+    searches = {category: request.args.get(category, '').strip()[:100] for category in categories}
+    return render_template(
+        'core/statistics.html', searches=searches,
+        leaderboards=statistics.get_leaderboards(searches),
+    )
+
 @bp.route('/show_season')
 @login_required
 def show_season():
@@ -251,7 +262,9 @@ def show_season_ranking(season):
 @login_required
 def user(user_id):
     user = db.first_or_404(sa.select(User).where(User.id == user_id))
-    return _render_result_table('core/user.html', user=user)
+    return _render_result_table(
+        'core/user.html', user=user, role_stats=statistics.get_player_roles(user.id)
+    )
 
 @bp.route('/edit_profile', methods=['GET', 'POST'])
 @login_required
