@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section">
+    <h1 class="title">Statistics</h1>
+    <p class="block">All recorded results across all seasons, including pending results. Win rates include all matches; check the match count for context.</p>
+
+    {% set boards = [
+        ('rivalry', '1-v-1 rivalries', 'Search the player, not the opponent. Each win is counted against both opposing players.'),
+        ('partnership', 'Team chemistry', 'Partnerships are ranked by win percentage, regardless of which role each player takes.'),
+        ('keeper', 'Keeper goals', 'Keeper goals are credited to the defender.'),
+        ('klinker', 'Klinkers', 'Klinkers are combined across attacker and defender roles.'),
+        ('attacker', 'Best attackers', 'Ranked by win percentage as attacker.'),
+        ('defender', 'Best defenders', 'Ranked by win percentage as defender.')
+    ] %}
+    {% for category, title, description in boards %}
+    <section class="block" id="{{ category }}">
+        <h2 class="title is-4">{{ title }}</h2>
+        <p class="mb-3">{{ description }}</p>
+        <form method="get" action="{{ url_for('core.show_statistics') }}#{{ category }}" class="field is-grouped">
+            {% for other, value in searches.items() if other != category and value %}
+            <input type="hidden" name="{{ other }}" value="{{ value }}">
+            {% endfor %}
+            {% for other, board in leaderboards.items() if other != category and board.page > 1 %}
+            <input type="hidden" name="{{ other }}_page" value="{{ board.page }}">
+            {% endfor %}
+            <div class="control">
+                <input class="input" type="search" name="{{ category }}" value="{{ searches[category] }}" placeholder="Search players" aria-label="Search {{ title }} by player">
+            </div>
+            <div class="control"><button class="button is-link" type="submit">Search</button></div>
+        </form>
+        <div class="table-container">
+            <table class="table is-striped is-hoverable">
+                <thead>
+                    <tr>
+                        <th scope="col">Rank</th>
+                        <th scope="col">Player{% if category == 'partnership' %}s{% endif %}</th>
+                        {% if category == 'rivalry' %}<th scope="col">Opponent</th>{% endif %}
+                        {% if category in ['keeper', 'klinker'] %}
+                        <th scope="col">Total</th>
+                        {% else %}
+                        <th scope="col">Wins</th>
+                        <th scope="col">Matches</th>
+                        <th scope="col">Win rate</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in leaderboards[category].rows %}
+                    <tr>
+                        <th scope="row">{{ (leaderboards[category].page - 1) * 10 + loop.index }}</th>
+                        <td>
+                            {% for player in row.players %}
+                            {% if category == 'rivalry' and not loop.first %}</td><td>{% elif not loop.first %} &amp; {% endif %}
+                            <a href="{{ url_for('core.user', user_id=player.id) }}">{{ player.name }}</a>
+                            {% endfor %}
+                        </td>
+                        {% if category in ['keeper', 'klinker'] %}
+                        <td>{{ row.total }}</td>
+                        {% else %}
+                        <td>{{ row.wins }}</td>
+                        <td>{{ row.matches }}</td>
+                        <td>{{ '%.1f'|format(100 * row.wins / row.matches) }}%</td>
+                        {% endif %}
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5">No results found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% set board = leaderboards[category] %}
+        <nav class="pagination is-centered" role="navigation" aria-label="{{ title }} pages">
+            {% if board.page > 1 %}
+            <a class="pagination-previous" href="{{ page_links[category].previous }}">Previous</a>
+            {% else %}
+            <span class="pagination-previous" aria-disabled="true">Previous</span>
+            {% endif %}
+            {% if board.page < board.pages %}
+            <a class="pagination-next" href="{{ page_links[category].next }}">Next</a>
+            {% else %}
+            <span class="pagination-next" aria-disabled="true">Next</span>
+            {% endif %}
+            <span class="pagination-list">Page {{ board.page }} of {{ board.pages }} ({{ board.total }} results)</span>
+        </nav>
+    </section>
+    {% endfor %}
+</section>
+{% endblock %}
